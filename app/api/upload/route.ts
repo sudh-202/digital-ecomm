@@ -3,9 +3,6 @@ import sharp from 'sharp';
 import path from 'path';
 import { promises as fs } from 'fs';
 
-// For development, we'll store locally
-const isDev = process.env.NODE_ENV === 'development';
-
 export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData();
@@ -52,7 +49,7 @@ export async function POST(request: NextRequest) {
       // Store image data in our products.json
       return NextResponse.json({ 
         success: true,
-        path: `/data/images/${filename}`
+        path: `/api/images/${filename}`
       });
 
     } catch (processError) {

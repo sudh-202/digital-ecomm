@@ -7,7 +7,7 @@ import { getAllProducts } from "../lib/services/product.service";
 import type { ProductWithUser } from "../lib/services/product.service";
 import { User } from "lucide-react";
 import { Button } from "./ui/button";
-import { useTheme } from "next-themes";
+// import { useTheme } from "next-themes";
 import { useCart } from "@/context/cart-context";
 import { toast } from "sonner";
 

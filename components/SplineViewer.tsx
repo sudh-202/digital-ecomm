@@ -1,7 +1,7 @@
 'use client';
 
 import Script from 'next/script';
-import { useEffect, useRef } from 'react';
+import {  useRef } from 'react';
 
 declare global {
   namespace JSX {

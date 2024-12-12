@@ -1,4 +1,4 @@
-import { featuredItems } from '@/constant';
+// import { featuredItems } from '@/constant';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
 
@@ -7,7 +7,7 @@ export default function ExplorePage() {
     <main className="container mx-auto px-4 py-24">
       <h1 className="text-3xl font-bold mb-8">Explore All Items</h1>
       
-      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
+      {/* <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
         {featuredItems.map((item) => (
           <div key={item.id} className="border rounded-lg overflow-hidden hover:shadow-lg transition-shadow">
             <div className="relative h-48">
@@ -40,7 +40,7 @@ export default function ExplorePage() {
             </div>
           </div>
         ))}
-      </div>
+      </div> */}
     </main>
   );
 }

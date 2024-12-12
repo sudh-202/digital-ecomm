@@ -1,6 +1,6 @@
 import { db } from '.';
 import { products, users, type NewProduct, type NewUser } from './schema';
-import { sql } from 'drizzle-orm';
+// import { sql } from 'drizzle-orm';
 
 async function clearDatabase() {
   try {

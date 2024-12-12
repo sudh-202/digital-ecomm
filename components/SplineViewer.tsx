@@ -1,14 +1,16 @@
 'use client';
 
 import Script from 'next/script';
-import {  useRef } from 'react';
+import { useRef } from 'react';
 
 declare global {
   namespace JSX {
     interface IntrinsicElements {
-      'spline-viewer': React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement> & {
+      'spline-viewer': {
+        ref?: React.RefObject<HTMLElement>;
         url?: string;
-      };
+        className?: string;
+      }
     }
   }
 }

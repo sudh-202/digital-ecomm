@@ -1,6 +1,6 @@
 import { promises as fs } from 'fs';
 import path from 'path';
-import { Product, User, NewProduct, NewUser } from './schema';
+import { Product, User } from './schema';
 
 const DATA_DIR = path.join(process.cwd(), 'data');
 const PRODUCTS_FILE = path.join(DATA_DIR, 'products.json');
@@ -46,7 +46,10 @@ class JsonDatabase {
       const jsonDataProducts: ProductsData = JSON.parse(productsData);
       const jsonDataUsers: UsersData = JSON.parse(usersData);
 
-      this.data.products = jsonDataProducts.products || [];
+      this.data.products = jsonDataProducts.products.map(product => ({
+        ...product,
+        slug: product.slug || createSlug(product.name)
+      }));
       this.data.users = jsonDataUsers.users || [];
     } catch (error) {
       console.error('Error loading data:', error);
@@ -95,12 +98,13 @@ class JsonDatabase {
     return this.data.users;
   }
 
-  public async createProduct(data: NewProduct): Promise<Product> {
+  public async createProduct(data: Omit<Product, 'id' | 'createdAt' | 'slug'>): Promise<Product> {
     const newId = Math.max(0, ...this.data.products.map(p => p.id)) + 1;
     const product: Product = {
       ...data,
       id: newId,
-      createdAt: new Date().toISOString()
+      createdAt: new Date().toISOString(),
+      slug: createSlug(data.name)
     };
     
     this.data.products.push(product);
@@ -109,7 +113,7 @@ class JsonDatabase {
     return product;
   }
 
-  public async createUser(data: NewUser): Promise<User> {
+  public async createUser(data: { name: string; email: string; image?: string }): Promise<User> {
     const newId = Math.max(0, ...this.data.users.map(u => u.id)) + 1;
     const user: User = {
       id: newId,
@@ -136,13 +140,20 @@ class JsonDatabase {
   }
 }
 
+function createSlug(name: string): string {
+  return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+}
+
 export const getDatabase = async () => JsonDatabase.getInstance();
 
 export async function readProductsFromFile(): Promise<Product[]> {
   try {
     const data = await fs.readFile(PRODUCTS_FILE, 'utf-8');
     const jsonData: ProductsData = JSON.parse(data);
-    return jsonData.products || [];
+    return jsonData.products.map(product => ({
+      ...product,
+      slug: product.slug || createSlug(product.name)
+    }));
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
       // If file doesn't exist, create it with empty products array
@@ -167,21 +178,14 @@ export async function writeProductsToFile(products: Product[]): Promise<void> {
   }
 }
 
-export async function addProductToFile(product: Product): Promise<Product> {
+export async function addProductToFile(product: Omit<Product, 'id' | 'createdAt' | 'slug'>): Promise<Product> {
   try {
     const products = await readProductsFromFile();
-    const newProduct = {
+    const newProduct: Product = {
       ...product,
       id: products.length + 1,
       createdAt: new Date().toISOString(),
-      userId: product.userId || 1,
-      image: product.image.startsWith('/uploads/') 
-        ? product.image 
-        : `/uploads/${product.image}`,
-      tags: product.tags || null,
-      highlights: product.highlights || null,
-      format: product.format || null,
-      storage: product.storage || null
+      slug: createSlug(product.name)
     };
     
     products.push(newProduct);

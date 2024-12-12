@@ -17,8 +17,8 @@ export async function getAllProducts(): Promise<ProductWithUser[]> {
     if (!response.ok) {
       throw new Error('Failed to fetch products');
     }
-    const products = await response.json();
-    return products.map(product => ({
+    const products: Product[] = await response.json();
+    return products.map((product: Product) => ({
       ...product,
       user: {
         name: 'Admin',
@@ -37,7 +37,7 @@ export async function getProductById(id: number): Promise<ProductWithUser | null
     if (!response.ok) {
       throw new Error('Failed to fetch product');
     }
-    const product = await response.json();
+    const product: Product = await response.json();
     if (!product) return null;
 
     return {
@@ -49,7 +49,7 @@ export async function getProductById(id: number): Promise<ProductWithUser | null
     };
   } catch (error) {
     console.error('Error getting product:', error);
-    return null;
+    throw error;
   }
 }
 
@@ -59,7 +59,7 @@ export async function getProductBySlug(slug: string): Promise<ProductWithUser | 
     if (!response.ok) {
       throw new Error('Failed to fetch product');
     }
-    const product = await response.json();
+    const product: Product = await response.json();
     if (!product) return null;
 
     return {
@@ -71,21 +71,21 @@ export async function getProductBySlug(slug: string): Promise<ProductWithUser | 
     };
   } catch (error) {
     console.error('Error getting product:', error);
-    return null;
+    throw error;
   }
 }
 
 export async function createProduct(data: NewProduct): Promise<Product> {
+  const slug = createSlug(data.name);
+  const productWithSlug = { ...data, slug };
+  
   try {
     const response = await fetch('/api/products', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        ...data,
-        slug: createSlug(data.name),
-      }),
+      body: JSON.stringify(productWithSlug),
     });
 
     if (!response.ok) {

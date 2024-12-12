@@ -4,7 +4,7 @@ import {
   writeProductsToFile, 
   addProductToFile 
 } from '@/lib/db/json-db';
-import type { Product } from '@/lib/db/schema';
+// import type { Product } from '@/lib/db/schema';
 
 export async function GET() {
   try {

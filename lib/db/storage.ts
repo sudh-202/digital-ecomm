@@ -1,4 +1,4 @@
-import type { Product, NewProduct, User } from './schema';
+import type { Product, User } from './schema';
 
 const STORAGE_KEY = 'digital-ecomm-products';
 

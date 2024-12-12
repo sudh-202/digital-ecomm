@@ -3,7 +3,7 @@ import sharp from 'sharp';
 import path from 'path';
 import { promises as fs } from 'fs';
 
-const isDev = process.env.NODE_ENV === 'development';
+// const isDev = process.env.NODE_ENV === 'development';
 
 export async function POST(request: NextRequest) {
   try {

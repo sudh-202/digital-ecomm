@@ -12,7 +12,6 @@ class LocalDatabase {
   private static instance: LocalDatabase;
 
   private constructor() {
-    // Initialize with some data
     const user: User = {
       id: 1,
       name: 'Tubeguruji',
@@ -25,9 +24,17 @@ class LocalDatabase {
 
     const products: Product[] = [
       {
-        id: 2,
+        id: 1,
         name: 'Admin Dashboard Pro',
         price: 15,
+        image: '/products/1.webp',
+        userId: user.id,
+        createdAt: new Date().toISOString()
+      },
+      {
+        id: 2,
+        name: 'Admin  Pro',
+        price: 215,
         image: '/products/1.webp',
         userId: user.id,
         createdAt: new Date().toISOString()

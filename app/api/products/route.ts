@@ -1,5 +1,4 @@
 import { NextResponse, NextRequest } from 'next/server';
-import fs from 'fs/promises';
 import path from 'path';
 import { Product, NewProduct } from '@/lib/db/schema';
 
@@ -11,9 +10,8 @@ interface ProductsData {
 
 async function readProducts(): Promise<Product[]> {
   try {
-    const data = await fs.readFile(PRODUCTS_FILE, 'utf-8');
-    const jsonData: ProductsData = JSON.parse(data);
-    return jsonData.products;
+    const data = require(PRODUCTS_FILE);
+    return data.products || [];
   } catch (error) {
     console.error('Error reading products:', error);
     return [];
@@ -23,7 +21,12 @@ async function readProducts(): Promise<Product[]> {
 async function writeProducts(products: Product[]): Promise<void> {
   try {
     const data: ProductsData = { products };
-    await fs.writeFile(PRODUCTS_FILE, JSON.stringify(data, null, 2));
+    // Using sync write to avoid fs/promises
+    require('fs').writeFileSync(
+      PRODUCTS_FILE,
+      JSON.stringify(data, null, 2),
+      'utf-8'
+    );
   } catch (error) {
     console.error('Error writing products:', error);
     throw new Error('Failed to write products to storage');
@@ -35,11 +38,12 @@ export async function GET() {
     const products = await readProducts();
     return NextResponse.json(products);
   } 
-  
-  // catch (error) {
-  //   return NextResponse.json({ error: 'Failed to fetch products' }, 
-  //     { status: 500 });
-  // }
+  catch (error: unknown) {
+    console.error('Failed to fetch products:', error);
+    return NextResponse.json({ 
+      error: error instanceof Error ? error.message : 'Failed to fetch products' 
+    }, { status: 500 });
+  }
 }
 
 export async function POST(request: NextRequest) {
@@ -58,7 +62,10 @@ export async function POST(request: NextRequest) {
     
     return NextResponse.json(newProduct);
   } 
-  // catch (error) {
-  //   return NextResponse.json({ error: 'Failed to create product' }, { status: 500 });
-  // }
+  catch (error: unknown) {
+    console.error('Failed to create product:', error);
+    return NextResponse.json({ 
+      error: error instanceof Error ? error.message : 'Failed to create product' 
+    }, { status: 500 });
+  }
 }

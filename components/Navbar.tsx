@@ -13,7 +13,7 @@ import { useState } from "react";
 export default function Navbar() {
   const { items, setIsOpen } = useCart();
   const cartCount = items.reduce((total, item) => total + item.quantity, 0);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [, setIsMobileMenuOpen] = useState(false);
 
   return (
     <header className="fixed top-0 w-full z-50 bg-background border-b border-border">

@@ -14,7 +14,7 @@ import { toast } from "sonner";
 export default function ProductList() {
   const [products, setProducts] = useState<ProductWithUser[]>([]);
   const [loading, setLoading] = useState(true);
-  const { theme } = useTheme();
+  // const { theme } = useTheme();
   const { addToCart } = useCart();
 
   useEffect(() => {

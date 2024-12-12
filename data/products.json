@@ -35,6 +35,15 @@
       "userId": 1,
       "id": 4,
       "createdAt": "2024-12-12T11:05:14.968Z"
+    },
+    {
+      "name": "The NextJS",
+      "price": 55,
+      "image": "/products/the-nextjs-1734008484571.webp",
+      "category": "Landing Page",
+      "userId": 1,
+      "id": 5,
+      "createdAt": "2024-12-12T13:01:25.625Z"
     }
   ]
 }

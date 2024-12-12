@@ -22,10 +22,10 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const [isOpen, setIsOpen] = useState(false);
 
   const addToCart = (product: Product) => {
-    setItems(currentItems => {
-      const existingItem = currentItems.find(item => item.id === product.id);
+    setItems((currentItems) => {
+      const existingItem = currentItems.find((item) => item.id === product.id);
       if (existingItem) {
-        return currentItems.map(item =>
+        return currentItems.map((item) =>
           item.id === product.id
             ? { ...item, quantity: item.quantity + 1 }
             : item
@@ -36,7 +36,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   };
 
   const removeFromCart = (productId: number) => {
-    setItems(currentItems => currentItems.filter(item => item.id !== productId));
+    setItems((currentItems) =>
+      currentItems.filter((item) => item.id !== productId)
+    );
   };
 
   const updateQuantity = (productId: number, quantity: number) => {
@@ -44,28 +46,26 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       removeFromCart(productId);
       return;
     }
-    setItems(currentItems =>
-      currentItems.map(item =>
+    setItems((currentItems) =>
+      currentItems.map((item) =>
         item.id === productId ? { ...item, quantity } : item
       )
     );
   };
 
-  const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
+  const totalItems = items.reduce((total, item) => total + item.quantity, 0);
 
-  return (
-    <CartContext.Provider value={{
-      items,
-      addToCart,
-      removeFromCart,
-      updateQuantity,
-      totalItems,
-      isOpen,
-      setIsOpen,
-    }}>
-      {children}
-    </CartContext.Provider>
-  );
+  const value = {
+    items,
+    addToCart,
+    removeFromCart,
+    updateQuantity,
+    totalItems,
+    isOpen,
+    setIsOpen,
+  };
+
+  return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
 }
 
 export function useCart() {

@@ -34,3 +34,19 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+## Deploy on Render.com
+
+To deploy this application on Render.com:
+
+1. Fork or clone this repository to your GitHub account
+2. Create a new Web Service on Render.com
+3. Connect your GitHub repository
+4. Configure the following environment variables in the Render dashboard:
+   - `DATABASE_URL`: Your Turso database URL
+   - `DATABASE_AUTH_TOKEN`: Your Turso database auth token
+   - `NEXT_PUBLIC_APP_URL`: Your Render.com app URL (e.g., https://your-app-name.onrender.com)
+
+The deployment will automatically use the configuration from `render.yaml`.
+
+Note: This deployment is configured to support file uploads and database operations, which may not work properly on other platforms due to readonly filesystem restrictions.

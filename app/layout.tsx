@@ -2,14 +2,15 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
-import Provider from "@/components/Provider";
 import { CartProvider } from "@/context/cart-context";
+import { Toaster } from "sonner";
+import Navbar from "@/components/Navbar";
 
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Digital Ecomm",
-  description: "Digital Ecommerce Platform",
+  title: "Digital E-commerce",
+  description: "Digital E-commerce Platform",
 };
 
 export default function RootLayout({
@@ -18,7 +19,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en">
       <body className={inter.className}>
         <ThemeProvider
           attribute="class"
@@ -27,9 +28,13 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <CartProvider>
-            <Provider>
-              {children}
-            </Provider>
+            <div className="flex min-h-screen flex-col">
+              <Navbar />
+              <main className="flex-1">
+                {children}
+              </main>
+              <Toaster />
+            </div>
           </CartProvider>
         </ThemeProvider>
       </body>

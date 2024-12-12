@@ -26,7 +26,7 @@ const Hero = () => {
 
         {/* Content */}
         <div className="container mx-auto py-10 relative z-10">
-          <div className="flex flex-row justify-between items-end gap-8 max-w-7xl">
+          <div className="flex lg:flex-row flex-col justify-between items-end gap-8 max-w-7xl">
             <div className="flex flex-col gap-6">
               <p className="text-blue-500 dark:text-blue-400 text-lg md:text-xl font-medium">
                 MORE THAN A WEBSITE BUILDER
@@ -50,7 +50,7 @@ const Hero = () => {
                 manage, and optimize web experiences that get results.
               </p>
             </div>
-            <div className="flex flex-col justify-end sm:flex-row gap-4 mt-4">
+            <div className="flex justify-end lg:flex-row gap-4 mt-4">
               <Button size="lg" className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white">
                 Start building
               </Button>

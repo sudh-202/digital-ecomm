@@ -44,7 +44,7 @@ export async function GET() {
       error: error instanceof Error ? error.message : 'Failed to fetch products' 
     }, { status: 500 });
   }
-}
+};
 
 export async function POST(request: NextRequest) {
   try {
@@ -67,5 +67,5 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ 
       error: error instanceof Error ? error.message : 'Failed to create product' 
     }, { status: 500 });
-  }
-}
+  };
+};

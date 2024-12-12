@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import path from 'path';
 import sharp from 'sharp';
+import path from 'path';
 import { promises as fs } from 'fs';
+
+// For development, we'll store locally
+const isDev = process.env.NODE_ENV === 'development';
 
 export async function POST(request: NextRequest) {
   try {
@@ -25,43 +28,40 @@ export async function POST(request: NextRequest) {
       .replace(/[^a-z0-9]/g, '-')
       .replace(/-+/g, '-');
     const filename = `${sanitizedName}-${Date.now()}.webp`;
-    
-    // Set up paths
-    const publicDir = path.join(process.cwd(), 'public');
-    const productsDir = path.join(publicDir, 'products');
 
-    // Ensure directories exist
+    // Store in data/images directory instead of public
+    const dataDir = path.join(process.cwd(), 'data');
+    const imagesDir = path.join(dataDir, 'images');
+
     try {
-      await fs.access(productsDir);
-    } catch {
-      // If directory doesn't exist, create it
-      await fs.mkdir(productsDir, { recursive: true });
-    }
+      // Ensure directories exist
+      await fs.mkdir(imagesDir, { recursive: true });
 
-    const filePath = path.join(productsDir, filename);
-
-    // Process image with sharp
-    try {
-      await sharp(buffer)
+      // Process and save image
+      const processedImageBuffer = await sharp(buffer)
         .webp({ quality: 80 })
         .resize(800, 600, {
           fit: 'inside',
           withoutEnlargement: true
         })
-        .toFile(filePath);
-    } catch (sharpError) {
-      console.error('Error processing image:', sharpError);
+        .toBuffer();
+
+      const imagePath = path.join(imagesDir, filename);
+      await fs.writeFile(imagePath, processedImageBuffer);
+
+      // Store image data in our products.json
+      return NextResponse.json({ 
+        success: true,
+        path: `/data/images/${filename}`
+      });
+
+    } catch (processError) {
+      console.error('Error processing image:', processError);
       return NextResponse.json(
         { error: 'Error processing image' },
         { status: 500 }
       );
     }
-
-    return NextResponse.json({ 
-      success: true,
-      path: `/products/${filename}`
-    });
-    
   } catch (error) {
     console.error('Error uploading file:', error);
     return NextResponse.json(

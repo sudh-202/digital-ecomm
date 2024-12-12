@@ -1,4 +1,4 @@
-import type { Product, User } from './schema';
+import type { Product, NewProduct, User } from './schema';
 
 const STORAGE_KEY = 'digital-ecomm-products';
 
@@ -56,14 +56,14 @@ export async function saveProducts(products: Product[]): Promise<void> {
   }
 }
 
-export async function addProduct(product: Product): Promise<Product> {
+export async function addProduct(data: NewProduct): Promise<Product> {
   try {
     const response = await fetch('/api/products', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(product),
+      body: JSON.stringify(data),
     });
 
     if (!response.ok) {

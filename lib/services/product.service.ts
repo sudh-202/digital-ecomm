@@ -1,5 +1,5 @@
 import type { Product, NewProduct } from '../db/schema';
-import { readProducts, addProductFile, getProductById as getProductByIdFromStorage } from '../db/storage';
+import { readProducts, addProduct, getProductById as getProductByIdFromStorage } from '../db/storage';
 
 export type ProductWithUser = Product & {
   user: {
@@ -44,7 +44,7 @@ export async function getProductById(id: number): Promise<ProductWithUser | null
 
 export async function createProduct(data: NewProduct): Promise<Product> {
   try {
-    const newProduct = await addProductFile(data);
+    const newProduct = await addProduct(data);
     return newProduct;
   } catch (error) {
     console.error('Error creating product:', error);

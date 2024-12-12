@@ -1,129 +1,63 @@
-import { Product, User, NewProduct, NewUser } from './schema';
-import { Storage } from './storage';
+import { User } from './schema';
 
-class LocalDatabase {
-  private data: {
-    products: Product[];
-    users: User[];
-  };
+const STORAGE_KEY = 'digital-ecomm-users';
 
-  private static instance: LocalDatabase;
+export class LocalDatabase {
+  private users: User[] = [];
 
-  private constructor() {
-    // Initialize with stored data or defaults
-    const storedProducts = Storage.getProducts();
-    const storedUsers = Storage.getUsers();
+  constructor() {
+    this.initializeUsers();
+  }
 
-    if (storedProducts.length === 0 && storedUsers.length === 0) {
+  private initializeUsers() {
+    if (typeof window === 'undefined') return;
+
+    const storedUsers = localStorage.getItem(STORAGE_KEY);
+    if (storedUsers) {
+      this.users = JSON.parse(storedUsers);
+    } else {
       // Create default user if no data exists
-      const user: User = {
+      const defaultUser: User = {
         id: 1,
         name: 'Tubeguruji',
         image: '/user.png',
         email: 'admin@tubeguruji.com',
         createdAt: new Date().toISOString()
       };
-
-      const products: Product[] = [
-        {
-          id: 1,
-          name: 'Admin Dashboard Pro',
-          price: 15,
-          image: '/products/1.webp',
-          category: 'Dashboard',
-          userId: user.id,
-          createdAt: new Date().toISOString()
-        },
-        {
-          id: 2,
-          name: 'Admin Pro',
-          price: 215,
-          image: '/products/1.webp',
-          category: 'Dashboard',
-          userId: user.id,
-          createdAt: new Date().toISOString()
-        }
-      ];
-
-      this.data = {
-        products,
-        users: [user]
-      };
-
-      // Save initial data
-      Storage.saveProducts(products);
-      Storage.saveUsers([user]);
-    } else {
-      this.data = {
-        products: storedProducts,
-        users: storedUsers
-      };
+      this.users = [defaultUser];
+      this.saveUsers();
     }
   }
 
-  public static getInstance(): LocalDatabase {
-    if (!LocalDatabase.instance) {
-      LocalDatabase.instance = new LocalDatabase();
-    }
-    return LocalDatabase.instance;
+  private saveUsers(): void {
+    if (typeof window === 'undefined') return;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(this.users));
   }
 
-  public getProducts(): (Product & { user: Pick<User, 'name' | 'image'> })[] {
-    return this.data.products.map(product => {
-      const user = this.data.users.find(u => u.id === product.userId);
-      return {
-        ...product,
-        user: {
-          name: user?.name || '',
-          image: user?.image || null
-        }
-      };
-    });
+  getUsers(): User[] {
+    return this.users;
   }
 
-  public getUsers(): User[] {
-    return this.data.users;
+  getUserById(id: number): User | undefined {
+    return this.users.find(user => user.id === id);
   }
 
-  public async createProduct(data: NewProduct): Promise<Product> {
-    const newId = Math.max(0, ...this.data.products.map(p => p.id)) + 1;
-    const product: Product = {
-      ...data,
-      id: newId,
+  addUser(user: Omit<User, 'id' | 'createdAt'>): User {
+    const newUser: User = {
+      ...user,
+      id: Math.max(0, ...this.users.map(u => u.id)) + 1,
       createdAt: new Date().toISOString()
     };
-    
-    this.data.products.push(product);
-    Storage.saveProducts(this.data.products);
-    
-    return product;
+    this.users.push(newUser);
+    this.saveUsers();
+    return newUser;
   }
 
-  public async createUser(data: NewUser): Promise<User> {
-    const newId = Math.max(0, ...this.data.users.map(u => u.id)) + 1;
-    const user: User = {
-      id: newId,
-      name: data.name,
-      email: data.email,
-      image: data.image || null,
-      createdAt: new Date().toISOString()
-    };
-    
-    this.data.users.push(user);
-    Storage.saveUsers(this.data.users);
-    
-    return user;
-  }
-
-  public async clearProducts(): Promise<void> {
-    this.data.products = [];
-    Storage.saveProducts([]);
-  }
-
-  public async clearUsers(): Promise<void> {
-    this.data.users = [];
-    Storage.saveUsers([]);
+  clearUsers(): void {
+    this.users = [];
+    this.saveUsers();
   }
 }
 
-export const localDb = LocalDatabase.getInstance();
+// Create a singleton instance
+export const localDb = new LocalDatabase();

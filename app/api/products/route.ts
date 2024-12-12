@@ -1,4 +1,4 @@
-import { NextResponse, NextRequest } from 'next/server';
+import { NextResponse } from 'next/server';
 import path from 'path';
 import { Product, NewProduct } from '@/lib/db/schema';
 
@@ -37,16 +37,15 @@ export async function GET() {
   try {
     const products = await readProducts();
     return NextResponse.json(products);
-  } 
-  catch (error: unknown) {
+  } catch (error: unknown) {
     console.error('Failed to fetch products:', error);
     return NextResponse.json({ 
       error: error instanceof Error ? error.message : 'Failed to fetch products' 
     }, { status: 500 });
   }
-};
+}
 
-export async function POST(request: NextRequest) {
+export async function POST(request: Request) {
   try {
     const data: NewProduct = await request.json();
     const products = await readProducts();
@@ -61,11 +60,10 @@ export async function POST(request: NextRequest) {
     await writeProducts(products);
     
     return NextResponse.json(newProduct);
-  } 
-  catch (error: unknown) {
+  } catch (error: unknown) {
     console.error('Failed to create product:', error);
     return NextResponse.json({ 
       error: error instanceof Error ? error.message : 'Failed to create product' 
     }, { status: 500 });
-  };
-};
+  }
+}

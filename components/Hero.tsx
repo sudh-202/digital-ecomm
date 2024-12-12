@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "./ui/button";
-import dynamic from "next/dynamic";
+// import dynamic from "next/dynamic";
 
 // const SplineViewer = dynamic(() => import("./SplineViewer"), {
 //   ssr: false,

@@ -26,15 +26,8 @@ export async function POST(request: NextRequest) {
       .replace(/-+/g, '-');
     const filename = `${sanitizedName}-${Date.now()}.webp`;
 
-    // Store in data/images directory instead of public
-    const dataDir = path.join(process.cwd(), 'data');
-    const imagesDir = path.join(dataDir, 'images');
-
     try {
-      // Ensure directories exist
-      await fs.mkdir(imagesDir, { recursive: true });
-
-      // Process and save image
+      // Process image
       const processedImageBuffer = await sharp(buffer)
         .webp({ quality: 80 })
         .resize(800, 600, {
@@ -43,13 +36,22 @@ export async function POST(request: NextRequest) {
         })
         .toBuffer();
 
-      const imagePath = path.join(imagesDir, filename);
+      // In development, save to public/uploads
+      // In production (Netlify), this directory will be part of the static assets
+      const uploadsDir = path.join(process.cwd(), 'public', 'uploads');
+      
+      try {
+        await fs.access(uploadsDir);
+      } catch {
+        await fs.mkdir(uploadsDir, { recursive: true });
+      }
+
+      const imagePath = path.join(uploadsDir, filename);
       await fs.writeFile(imagePath, processedImageBuffer);
 
-      // Store image data in our products.json
       return NextResponse.json({ 
         success: true,
-        path: `/api/images/${filename}`
+        path: `/uploads/${filename}`
       });
 
     } catch (processError) {

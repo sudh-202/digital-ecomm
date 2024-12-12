@@ -6,32 +6,30 @@ import type { Product } from '@/lib/db/schema';
 async function updateLocalData(products: Product[]) {
   try {
     // Update products.json
-    await fs.writeFile(
-      path.join(process.cwd(), 'data', 'products.json'),
-      JSON.stringify({ products }, null, 2)
-    );
+    const productsPath = path.join(process.cwd(), 'data', 'products.json');
+    const currentProductsData = await fs.readFile(productsPath, 'utf-8')
+      .then(data => JSON.parse(data))
+      .catch(() => ({ products: [] }));
 
-    // Update users.json with any new users
-    const usersPath = path.join(process.cwd(), 'data', 'users.json');
-    const usersData = JSON.parse(await fs.readFile(usersPath, 'utf-8'));
-    const updatedUsers = new Set([...usersData.users]);
+    // Merge existing products with new ones, preferring new ones
+    const mergedProducts = [...currentProductsData.products];
     
-    products.forEach(product => {
-      if (product.userId) {
-        updatedUsers.add({
-          id: product.userId,
-          name: 'Demo User',
-          image: null
-        });
+    products.forEach(newProduct => {
+      const existingIndex = mergedProducts.findIndex(p => p.id === newProduct.id);
+      if (existingIndex !== -1) {
+        mergedProducts[existingIndex] = newProduct;
+      } else {
+        mergedProducts.push(newProduct);
       }
     });
 
+    // Write updated products back to file
     await fs.writeFile(
-      usersPath,
-      JSON.stringify({ users: Array.from(updatedUsers) }, null, 2)
+      productsPath,
+      JSON.stringify({ products: mergedProducts }, null, 2)
     );
 
-    // Ensure public/products directory exists
+    // Handle product images
     const productsDir = path.join(process.cwd(), 'public', 'products');
     try {
       await fs.access(productsDir);
@@ -39,24 +37,31 @@ async function updateLocalData(products: Product[]) {
       await fs.mkdir(productsDir, { recursive: true });
     }
 
-    // Update product images in public/products
+    // Download and store new images
     for (const product of products) {
       if (product.image && product.image.startsWith('http')) {
         const imageName = `product-${product.id}${path.extname(product.image)}`;
         const localImagePath = path.join(productsDir, imageName);
         
         try {
-          // Only download if image doesn't exist locally
+          // Check if image already exists
           await fs.access(localImagePath);
         } catch {
-          const response = await fetch(product.image);
-          const buffer = await response.arrayBuffer();
-          await fs.writeFile(localImagePath, Buffer.from(buffer));
+          // Image doesn't exist, download it
+          try {
+            const response = await fetch(product.image);
+            if (!response.ok) throw new Error('Failed to fetch image');
+            const buffer = await response.arrayBuffer();
+            await fs.writeFile(localImagePath, Buffer.from(buffer));
+            console.log(`Downloaded image for product ${product.id}`);
+          } catch (error) {
+            console.error(`Failed to download image for product ${product.id}:`, error);
+          }
         }
       }
     }
 
-    return { success: true };
+    return { success: true, productsUpdated: mergedProducts.length };
   } catch (error) {
     console.error('Error updating local data:', error);
     throw error;
@@ -66,8 +71,16 @@ async function updateLocalData(products: Product[]) {
 export async function POST(request: Request) {
   try {
     const { products } = await request.json();
-    await updateLocalData(products);
-    return NextResponse.json({ success: true });
+    
+    if (!Array.isArray(products)) {
+      return NextResponse.json(
+        { error: 'Invalid products data' },
+        { status: 400 }
+      );
+    }
+
+    const result = await updateLocalData(products);
+    return NextResponse.json(result);
   } catch (error) {
     console.error('Error in sync API:', error);
     return NextResponse.json(

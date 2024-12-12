@@ -1,4 +1,4 @@
-import { Product, User } from './schema';
+import { Product, User, NewProduct, NewUser } from './schema';
 
 class LocalDatabase {
   private data: {
@@ -31,54 +31,6 @@ class LocalDatabase {
         image: '/products/1.webp',
         userId: user.id,
         createdAt: new Date().toISOString()
-      },
-      {
-        id: 3,
-        name: 'Social Media Template',
-        price: 12,
-        image: '/products/1.webp',
-        userId: user.id,
-        createdAt: new Date().toISOString()
-      },
-      {
-        id: 4,
-        name: 'Portfolio Website Kit',
-        price: 8,
-        image: '/products/1.webp',
-        userId: user.id,
-        createdAt: new Date().toISOString()
-      },
-      {
-        id: 5,
-        name: 'Blog Platform UI',
-        price: 11,
-        image: '/products/1.webp',
-        userId: user.id,
-        createdAt: new Date().toISOString()
-      },
-      {
-        id: 6,
-        name: 'Mobile App Design Kit',
-        price: 14,
-        image: '/products/1.webp',
-        userId: user.id,
-        createdAt: new Date().toISOString()
-      },
-      {
-        id: 7,
-        name: 'Landing Page Bundle',
-        price: 9,
-        image: '/products/1.webp',
-        userId: user.id,
-        createdAt: new Date().toISOString()
-      },
-      {
-        id: 8,
-        name: 'SaaS Application UI',
-        price: 16,
-        image: '/products/1.webp',
-        userId: user.id,
-        createdAt: new Date().toISOString()
       }
     ];
 
@@ -97,13 +49,43 @@ class LocalDatabase {
       ...product,
       user: {
         name: this.data.users.find(u => u.id === product.userId)?.name || '',
-        image: this.data.users.find(u => u.id === product.userId)?.image || ''
+        image: this.data.users.find(u => u.id === product.userId)?.image || null
       }
     }));
   }
 
   public getUsers(): User[] {
     return this.data.users;
+  }
+
+  public async createProduct(data: NewProduct): Promise<Product> {
+    const product: Product = {
+      ...data,
+      id: this.data.products.length + 1,
+      createdAt: new Date().toISOString()
+    };
+    this.data.products.push(product);
+    return product;
+  }
+
+  public async createUser(data: NewUser): Promise<User> {
+    const user: User = {
+      id: this.data.users.length + 1,
+      name: data.name,
+      email: data.email,
+      image: data.image || null,
+      createdAt: new Date().toISOString()
+    };
+    this.data.users.push(user);
+    return user;
+  }
+
+  public async clearProducts(): Promise<void> {
+    this.data.products = [];
+  }
+
+  public async clearUsers(): Promise<void> {
+    this.data.users = [];
   }
 }
 

@@ -1,11 +1,10 @@
 import { db } from '.';
-import { products, users, type NewProduct, type NewUser } from './schema';
-// import { sql } from 'drizzle-orm';
+import type { NewProduct, NewUser } from './schema';
 
 async function clearDatabase() {
   try {
-    await db.delete(products).execute();
-    await db.delete(users).execute();
+    await db.products.delete();
+    await db.users.delete();
     console.log('Database cleared successfully');
   } catch (error) {
     console.error('Error clearing database:', error);
@@ -16,7 +15,7 @@ async function clearDatabase() {
 async function seed() {
   try {
     // Check if data exists
-    const existingUsers = await db.select().from(users).limit(1).execute();
+    const existingUsers = await db.users.findMany();
     
     if (existingUsers.length > 0) {
       console.log('Data already exists. Skipping seed.');
@@ -27,14 +26,11 @@ async function seed() {
     await clearDatabase();
 
     // Create user
-    const [user] = await db.insert(users)
-      .values({
-        name: 'Digital Store Admin',
-        image: '/avatars/admin.png',
-        email: 'admin@digitalstore.com',
-      } as NewUser)
-      .returning()
-      .execute();
+    const user = await db.users.create({
+      name: 'Digital Store Admin',
+      image: '/avatars/admin.png',
+      email: 'admin@digitalstore.com',
+    } as NewUser);
 
     console.log('Created user:', user);
 
@@ -49,51 +45,44 @@ async function seed() {
       {
         name: 'Smart Fitness Watch',
         price: 19900, // $199.00
-        image: '/products/1.webp',
-        userId: user.id,
-      },
-      {
-        name: 'Ultra HD 4K Action Camera',
-        price: 24900, // $249.00
-        image: '/products/1.webp',
-        userId: user.id,
-      },
-      {
-        name: 'Portable Bluetooth Speaker',
-        price: 7900, // $79.00
-        image: '/products/1.webp',
+        image: '/products/2.webp',
         userId: user.id,
       },
       {
         name: 'Noise-Canceling Earbuds',
         price: 15900, // $159.00
-        image: '/products/1.webp',
+        image: '/products/3.webp',
         userId: user.id,
       },
       {
-        name: 'Smart Home Security Camera',
-        price: 12900, // $129.00
-        image: '/products/1.webp',
+        name: 'Portable Bluetooth Speaker',
+        price: 7900, // $79.00
+        image: '/products/4.webp',
         userId: user.id,
       },
       {
-        name: 'Wireless Charging Pad',
-        price: 3900, // $39.00
-        image: '/products/1.webp',
+        name: 'Wireless Gaming Mouse',
+        price: 4900, // $49.00
+        image: '/products/5.webp',
         userId: user.id,
-      }
+      },
+      {
+        name: 'RGB Mechanical Keyboard',
+        price: 8900, // $89.00
+        image: '/products/6.webp',
+        userId: user.id,
+      },
     ];
 
-    const insertedProducts = await db.insert(products)
-      .values(productData)
-      .returning()
-      .execute();
+    for (const product of productData) {
+      const createdProduct = await db.products.create(product);
+      console.log('Created product:', createdProduct);
+    }
 
-    console.log(`Seeded ${insertedProducts.length} products successfully`);
-
+    console.log('Seeding completed successfully');
   } catch (error) {
     console.error('Error seeding database:', error);
-    process.exit(1);
+    throw error;
   }
 }
 
@@ -101,13 +90,12 @@ async function seed() {
 if (require.main === module) {
   seed()
     .then(() => {
-      console.log('Seeding completed successfully');
+      console.log('✅ Database has been seeded');
       process.exit(0);
     })
     .catch((error) => {
-      console.error('Seeding failed:', error);
+      console.error('❌ Database seeding failed');
+      console.error(error);
       process.exit(1);
     });
 }
-
-export { seed, clearDatabase };

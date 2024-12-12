@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import path from 'path';
+import { promises as fs } from 'fs';
 import { Product, NewProduct } from '@/lib/db/schema';
 
 const PRODUCTS_FILE = path.join(process.cwd(), 'data', 'products.json');
@@ -10,8 +11,9 @@ interface ProductsData {
 
 async function readProducts(): Promise<Product[]> {
   try {
-    const data = require(PRODUCTS_FILE);
-    return data.products || [];
+    const data = await fs.readFile(PRODUCTS_FILE, 'utf-8');
+    const jsonData: ProductsData = JSON.parse(data);
+    return jsonData.products || [];
   } catch (error) {
     console.error('Error reading products:', error);
     return [];
@@ -21,8 +23,7 @@ async function readProducts(): Promise<Product[]> {
 async function writeProducts(products: Product[]): Promise<void> {
   try {
     const data: ProductsData = { products };
-    // Using sync write to avoid fs/promises
-    require('fs').writeFileSync(
+    await fs.writeFile(
       PRODUCTS_FILE,
       JSON.stringify(data, null, 2),
       'utf-8'

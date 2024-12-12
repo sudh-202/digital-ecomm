@@ -2,13 +2,6 @@ import type { Product, User, NewProduct } from './schema';
 import { localDb } from './local-db';
 import { readProducts, addProduct } from './storage';
 
-type ProductWithUser = Product & {
-  user: {
-    name: string;
-    image: string | null;
-  };
-};
-
 // Add missing methods to LocalDatabase class
 declare module './local-db' {
   interface LocalDatabase {

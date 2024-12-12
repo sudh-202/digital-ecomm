@@ -1,0 +1,40 @@
+{
+  "products": [
+    {
+      "id": 1,
+      "name": "Admin Dashboard Pro",
+      "price": 15,
+      "image": "/products/1.webp",
+      "category": "Dashboard",
+      "userId": 1,
+      "createdAt": "2024-12-12T10:58:33.000Z"
+    },
+    {
+      "id": 2,
+      "name": "Admin Pro",
+      "price": 215,
+      "image": "/products/1.webp",
+      "category": "Dashboard",
+      "userId": 1,
+      "createdAt": "2024-12-12T10:58:33.000Z"
+    },
+    {
+      "id": 3,
+      "name": "Admin Pro",
+      "price": 215,
+      "image": "/products/nextjs-1734000964174.webp",
+      "category": "Dashboard",
+      "userId": 1,
+      "createdAt": "2024-12-12T10:58:33.000Z"
+    },
+    {
+      "name": "React JS",
+      "price": 120,
+      "image": "/products/react-js-1734001514910.webp",
+      "category": "Dashboard",
+      "userId": 1,
+      "id": 4,
+      "createdAt": "2024-12-12T11:05:14.968Z"
+    }
+  ]
+}

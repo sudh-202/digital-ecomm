@@ -1,0 +1,11 @@
+{
+  "users": [
+    {
+      "id": 1,
+      "name": "Tubeguruji",
+      "image": "/user.png",
+      "email": "admin@tubeguruji.com",
+      "createdAt": "2024-12-12T10:58:33.000Z"
+    }
+  ]
+}

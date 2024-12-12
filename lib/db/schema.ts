@@ -18,6 +18,7 @@ export const products = sqliteTable('products', {
   name: text('name').notNull(),
   price: integer('price').notNull(),
   image: text('image').notNull(),
+  category: text('category').notNull(),
   userId: integer('user_id').notNull().references(() => users.id),
   createdAt: text('created_at').default(sql`CURRENT_TIMESTAMP`),
 });

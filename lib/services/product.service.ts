@@ -1,5 +1,5 @@
-import { localDb } from '../db/local-db';
-import type { Product } from '../db/schema';
+import type { Product, NewProduct } from '../db/schema';
+import { readProducts, addProductFile, getProductById as getProductByIdFromStorage } from '../db/storage';
 
 export type ProductWithUser = Product & {
   user: {
@@ -10,14 +10,13 @@ export type ProductWithUser = Product & {
 
 export async function getAllProducts(): Promise<ProductWithUser[]> {
   try {
-    const products = await localDb.getProducts();
-    console.log('Fetched products:', products); // Debug log
+    const products = await readProducts();
     return products.map(product => ({
       ...product,
       user: {
-        name: product.user.name,
-        image: product.user.image || '/default-user.png' // Provide a default image
-      }
+        name: 'Demo User',
+        image: null,
+      },
     }));
   } catch (error) {
     console.error('Error fetching products:', error);
@@ -27,20 +26,28 @@ export async function getAllProducts(): Promise<ProductWithUser[]> {
 
 export async function getProductById(id: number): Promise<ProductWithUser | null> {
   try {
-    const products = await localDb.getProducts();
-    console.log('Fetched products:', products); // Debug log
-    const product = products.find(p => p.id === id);
+    const product = await getProductByIdFromStorage(id);
     if (!product) return null;
-    
+
     return {
       ...product,
       user: {
-        name: product.user.name,
-        image: product.user.image || '/default-user.png' // Provide a default image
-      }
+        name: 'Demo User',
+        image: null,
+      },
     };
   } catch (error) {
     console.error('Error fetching product:', error);
     return null;
+  }
+}
+
+export async function createProduct(data: NewProduct): Promise<Product> {
+  try {
+    const newProduct = await addProductFile(data);
+    return newProduct;
+  } catch (error) {
+    console.error('Error creating product:', error);
+    throw new Error('Failed to create product');
   }
 }

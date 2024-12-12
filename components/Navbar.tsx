@@ -6,8 +6,12 @@ import { ShoppingCart, Menu } from "lucide-react";
 import { navLinks } from "@/constant";
 import { Sheet, SheetContent, SheetTrigger } from "./ui/sheet";
 import { ThemeToggle } from "./theme-toggle";
+import { useCart } from "@/context/cart-context";
+import { CartSidebar } from "./CartSidebar";
 
 const Navbar = () => {
+  const { totalItems, setIsOpen } = useCart();
+
   return (
     <header className="fixed top-0 w-full z-50 bg-background border-b border-border">
       <nav className="container mx-auto px-6 md:px-10 py-4">
@@ -31,8 +35,18 @@ const Navbar = () => {
 
           <div className="flex items-center gap-4">
             <ThemeToggle />
-            <Button variant="outline" size="icon" className="hidden md:flex">
+            <Button 
+              variant="outline" 
+              size="icon" 
+              className="hidden md:flex relative"
+              onClick={() => setIsOpen(true)}
+            >
               <ShoppingCart className="h-5 w-5" />
+              {totalItems > 0 && (
+                <span className="absolute -top-2 -right-2 bg-blue-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">
+                  {totalItems}
+                </span>
+              )}
             </Button>
 
             {/* Mobile Navigation */}
@@ -53,8 +67,18 @@ const Navbar = () => {
                       {link.label}
                     </Link>
                   ))}
-                  <Button variant="outline" size="icon" className="w-10">
+                  <Button 
+                    variant="outline" 
+                    size="icon" 
+                    className="w-10 relative"
+                    onClick={() => setIsOpen(true)}
+                  >
                     <ShoppingCart className="h-5 w-5" />
+                    {totalItems > 0 && (
+                      <span className="absolute -top-2 -right-2 bg-blue-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">
+                        {totalItems}
+                      </span>
+                    )}
                   </Button>
                 </div>
               </SheetContent>
@@ -62,6 +86,7 @@ const Navbar = () => {
           </div>
         </div>
       </nav>
+      <CartSidebar />
     </header>
   );
 };

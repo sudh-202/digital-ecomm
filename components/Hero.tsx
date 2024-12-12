@@ -3,12 +3,12 @@
 import { Button } from "./ui/button";
 import dynamic from "next/dynamic";
 
-const SplineViewer = dynamic(() => import("./SplineViewer"), {
-  ssr: false,
-  loading: () => (
-    <div className="absolute inset-0 bg-gradient-to-b from-background to-background/50" />
-  ),
-});
+// const SplineViewer = dynamic(() => import("./SplineViewer"), {
+//   ssr: false,
+//   loading: () => (
+//     <div className="absolute inset-0 bg-gradient-to-b from-background to-background/50" />
+//   ),
+// });
 
 const Hero = () => {
   return (
@@ -16,10 +16,10 @@ const Hero = () => {
       <section className="relative min-h-screen flex items-center justify-between pt-24 px-6 md:px-10 bg-background overflow-hidden">
         {/* Spline Background */}
         <div className="absolute inset-0 z-0">
-          <SplineViewer
+          {/* <SplineViewer
             url="https://prod.spline.design/PKzcNKmA00jv63hU/scene.splinecode"
             className="w-full h-full"
-          />
+          /> */}
           {/* Gradient Overlay */}
           <div className="absolute inset-0 bg-gradient-to-b from-background/90 via-background/50 to-background pointer-events-none" />
         </div>

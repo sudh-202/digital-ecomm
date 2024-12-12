@@ -3,6 +3,8 @@ import sharp from 'sharp';
 import path from 'path';
 import { promises as fs } from 'fs';
 
+const isDev = process.env.NODE_ENV === 'development';
+
 export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData();
@@ -36,24 +38,30 @@ export async function POST(request: NextRequest) {
         })
         .toBuffer();
 
-      // In development, save to public/uploads
-      // In production (Netlify), this directory will be part of the static assets
-      const uploadsDir = path.join(process.cwd(), 'public', 'uploads');
-      
-      try {
-        await fs.access(uploadsDir);
-      } catch {
-        await fs.mkdir(uploadsDir, { recursive: true });
+      if (isDev) {
+        // In development, save to public/uploads
+        const uploadsDir = path.join(process.cwd(), 'public', 'uploads');
+        try {
+          await fs.access(uploadsDir);
+        } catch {
+          await fs.mkdir(uploadsDir, { recursive: true });
+        }
+
+        const imagePath = path.join(uploadsDir, filename);
+        await fs.writeFile(imagePath, processedImageBuffer);
+
+        return NextResponse.json({ 
+          success: true,
+          path: `/uploads/${filename}`
+        });
+      } else {
+        // In production, return base64
+        const base64Image = processedImageBuffer.toString('base64');
+        return NextResponse.json({
+          success: true,
+          path: `data:image/webp;base64,${base64Image}`
+        });
       }
-
-      const imagePath = path.join(uploadsDir, filename);
-      await fs.writeFile(imagePath, processedImageBuffer);
-
-      return NextResponse.json({ 
-        success: true,
-        path: `/uploads/${filename}`
-      });
-
     } catch (processError) {
       console.error('Error processing image:', processError);
       return NextResponse.json(

@@ -25,7 +25,7 @@ const Hero = () => {
         </div>
 
         {/* Content */}
-        <div className="container mx-auto py-10 relative z-10">
+        <div className="max-w-7xl mx-auto py-10 relative z-10">
           <div className="flex lg:flex-row flex-col justify-between items-end gap-8 max-w-7xl">
             <div className="flex flex-col gap-6">
               <p className="text-blue-500 dark:text-blue-400 text-lg md:text-xl font-medium">

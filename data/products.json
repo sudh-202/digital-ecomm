@@ -1,49 +1,104 @@
 {
   "products": [
     {
+      "name": "Learning English Pro Kit",
+      "description": "Complete English learning toolkit with interactive lessons",
+      "price": 49.99,
+      "category": "Education",
+      "image": "/uploads/nextjs-1734000439112.webp",
+      "tags": ["Education", "Learning", "English"],
+      "highlights": [
+        "Interactive Lessons",
+        "Practice Exercises",
+        "Progress Tracking",
+        "Audio Support"
+      ],
+      "format": "Web App",
+      "storage": "10 Mb",
+      "userId": 1,
+      "slug": "learning-english-pro-kit",
       "id": 1,
-      "name": "Admin Dashboard Pro",
-      "price": 15,
-      "image": "/products/1.webp",
-      "category": "Dashboard",
-      "userId": 1,
       "createdAt": "2024-12-12T10:58:33.000Z"
     },
     {
+      "name": "Business English Master",
+      "description": "Professional English course focused on business communication",
+      "price": 79.99,
+      "category": "Business",
+      "image": "/uploads/the-nextjs-1734008484571.webp",
+      "tags": ["Business", "Professional", "English"],
+      "highlights": [
+        "Business Communication",
+        "Email Writing",
+        "Presentation Skills",
+        "Negotiation Phrases"
+      ],
+      "format": "Web App",
+      "storage": "15 Mb",
+      "userId": 1,
+      "slug": "business-english-master",
       "id": 2,
-      "name": "Admin Pro",
-      "price": 215,
-      "image": "/products/1.webp",
-      "category": "Dashboard",
-      "userId": 1,
-      "createdAt": "2024-12-12T10:58:33.000Z"
+      "createdAt": "2024-12-12T11:00:00.000Z"
     },
     {
+      "name": "English Grammar Guide",
+      "description": "Comprehensive grammar guide with examples",
+      "price": 29.99,
+      "category": "Education",
+      "image": "/uploads/this-is-json-1734000680490.webp",
+      "tags": ["Grammar", "Education", "Reference"],
+      "highlights": [
+        "Complete Grammar Rules",
+        "Practice Exercises",
+        "Common Mistakes",
+        "Quick Reference"
+      ],
+      "format": "Web App",
+      "storage": "8 Mb",
+      "userId": 1,
+      "slug": "english-grammar-guide",
       "id": 3,
-      "name": "Admin Pro",
-      "price": 215,
-      "image": "/products/nextjs-1734000964174.webp",
-      "category": "Dashboard",
-      "userId": 1,
-      "createdAt": "2024-12-12T10:58:33.000Z"
+      "createdAt": "2024-12-12T11:30:00.000Z"
     },
     {
-      "name": "React JS",
-      "price": 120,
-      "image": "/products/react-js-1734001514910.webp",
-      "category": "Dashboard",
+      "name": "The GitHub",
+      "description": "This is product for github",
+      "price": 200,
+      "category": "Technology",
+      "image": "/uploads/github.webp",
+      "tags": ["Git", "Version Control", "Development"],
+      "highlights": [
+        "Repository Management",
+        "Code Collaboration",
+        "Version Control",
+        "Issue Tracking"
+      ],
+      "format": "Web App",
+      "storage": "12 Mb",
       "userId": 1,
+      "slug": "the-github",
       "id": 4,
-      "createdAt": "2024-12-12T11:05:14.968Z"
+      "createdAt": "2024-12-12T19:24:25.745Z"
     },
     {
-      "name": "The NextJS",
+      "name": "Metaverse",
+      "description": "This is product of meta verse",
       "price": 55,
-      "image": "/products/the-nextjs-1734008484571.webp",
-      "category": "Landing Page",
+      "category": "Technology",
+      "image": "/uploads/metaverse-1734035999724.webp",
+      "tags": ["VR", "Metaverse", "Technology"],
+      "highlights": [
+        "Virtual Reality",
+        "3D Environments",
+        "Social Interaction",
+        "Digital Assets"
+      ],
+      "format": "Figma",
+      "storage": "11 Mb",
       "userId": 1,
+      "slug": "metaverse",
       "id": 5,
-      "createdAt": "2024-12-12T13:01:25.625Z"
+      "createdAt": "2024-12-12T20:39:59.827Z"
     }
   ]
 }

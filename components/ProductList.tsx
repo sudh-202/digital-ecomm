@@ -3,28 +3,44 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import { Card, CardContent } from "@/components/ui/card";
-import { getAllProducts } from "../lib/services/product.service";
 import type { ProductWithUser } from "../lib/services/product.service";
 import { User } from "lucide-react";
 import { Button } from "./ui/button";
 import { useCart } from "@/context/cart-context";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 export default function ProductList() {
   const [products, setProducts] = useState<ProductWithUser[]>([]);
   const [loading, setLoading] = useState(true);
   const { addToCart } = useCart();
+  const router = useRouter();
 
   const fetchProducts = async () => {
     try {
-      const fetchedProducts = await getAllProducts();
+      const response = await fetch('/api/products');
+      if (!response.ok) {
+        throw new Error('Failed to fetch products');
+      }
+      const fetchedProducts = await response.json();
+      
+      // Ensure we have an array of products and add user info
+      const productArray = Array.isArray(fetchedProducts) ? fetchedProducts : [];
+      const productsWithUser = productArray.map(product => ({
+        ...product,
+        user: {
+          name: 'Admin',
+          image: null
+        }
+      }));
+      
       setProducts(prevProducts => {
         // Only update if there are changes
-        const hasChanges = JSON.stringify(prevProducts) !== JSON.stringify(fetchedProducts);
-        if (hasChanges) {
-          toast.success("New products available!");
+        const hasChanges = JSON.stringify(prevProducts) !== JSON.stringify(productsWithUser);
+        if (hasChanges && productsWithUser.length > 0) {
+          toast.success("Products loaded successfully!");
         }
-        return hasChanges ? fetchedProducts : prevProducts;
+        return hasChanges ? productsWithUser : prevProducts;
       });
     } catch (error) {
       console.error("Error loading products:", error);
@@ -50,6 +66,10 @@ export default function ProductList() {
     toast.success("Added to cart!");
   };
 
+  const handleCardClick = (product: ProductWithUser) => {
+    router.push(`/products/${product.slug}`);
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[200px]">
@@ -73,42 +93,52 @@ export default function ProductList() {
       <div className="max-w-7xl mx-auto">
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {products.map((product) => (
-            <Card
-              key={product.id}
-              className="overflow-hidden hover:shadow-lg transition-all duration-300 bg-white dark:bg-gray-800"
+            <Card 
+              key={product.id} 
+              className="overflow-hidden hover:shadow-lg transition-all duration-300 cursor-pointer bg-white dark:bg-gray-800"
+              onClick={() => handleCardClick(product)}
             >
               <div className="relative h-48 w-full bg-gray-100 dark:bg-gray-700">
-                <Image
-                  src={product.image}
-                  alt={product.name}
-                  fill
-                  className="object-cover"
-                />
+                {product.image && (
+                  <Image
+                    src={`/api/images/${product.image.split('/').pop()}`}
+                    alt={product.name}
+                    fill
+                    className="object-cover"
+                    priority={true}
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                    onError={(e) => {
+                      console.error('Image load error:', product.image);
+                      e.currentTarget.style.display = 'none';
+                    }}
+                  />
+                )}
               </div>
               <CardContent className="p-6">
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="w-7 h-7 rounded-full overflow-hidden bg-rose-500 flex items-center justify-center text-white">
+                  <div className="w-7 h-7 rounded-full overflow-hidden bg-blue-500 flex items-center justify-center text-white">
                     <User size={16} />
                   </div>
                   <span className="text-sm text-gray-600 dark:text-gray-300">
                     {product.user.name}
                   </span>
                 </div>
-                <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">
+                <h3 className="text-lg font-semibold mb-2 text-gray-900 dark:text-white">
                   {product.name}
-                </h2>
+                </h3>
+                {/* <p className="text-gray-600 dark:text-gray-300 text-sm mb-4">
+                  {product.description}
+                </p> */}
                 <div className="flex justify-between items-center">
-                  <div>
-                    <span className="text-2xl font-bold text-amber-500 dark:text-amber-400">
-                      $
-                    </span>
-                    <span className="text-2xl font-bold text-amber-500 dark:text-amber-400">
-                      {product.price}
-                    </span>
-                  </div>
+                  <span className="text-lg font-bold text-blue-600 dark:text-blue-400">
+                    ${product.price}
+                  </span>
                   <Button 
-                    onClick={() => handleAddToCart(product)}
-                    className="bg-amber-400 hover:bg-amber-500 text-black dark:bg-amber-500 dark:hover:bg-amber-600 dark:text-white font-semibold rounded-full px-6"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleAddToCart(product);
+                    }}
+                    variant="outline"
                   >
                     Add to Cart
                   </Button>

@@ -8,7 +8,7 @@ export async function GET(
 ) {
   try {
     const filename = params.filename;
-    const imagePath = path.join(process.cwd(), 'data', 'images', filename);
+    const imagePath = path.join(process.cwd(), 'data', 'uploads', filename);
 
     try {
       const imageBuffer = await fs.readFile(imagePath);

@@ -28,51 +28,24 @@ export async function POST(request: NextRequest) {
       .replace(/-+/g, '-');
     const filename = `${sanitizedName}-${Date.now()}.webp`;
 
-    try {
-      // Process image
-      const processedImageBuffer = await sharp(buffer)
-        .webp({ quality: 80 })
-        .resize(800, 600, {
-          fit: 'inside',
-          withoutEnlargement: true
-        })
-        .toBuffer();
+    // Updated path to data/uploads directory
+    const uploadsDir = path.join(process.cwd(), 'data', 'uploads');
+    await fs.mkdir(uploadsDir, { recursive: true });
 
-      if (isDev) {
-        // In development, save to public/uploads
-        const uploadsDir = path.join(process.cwd(), 'public', 'uploads');
-        try {
-          await fs.access(uploadsDir);
-        } catch {
-          await fs.mkdir(uploadsDir, { recursive: true });
-        }
+    // Process and save the image
+    await sharp(buffer)
+      .webp({ quality: 80 })
+      .toFile(path.join(uploadsDir, filename));
 
-        const imagePath = path.join(uploadsDir, filename);
-        await fs.writeFile(imagePath, processedImageBuffer);
+    // Return the path relative to uploads directory
+    return NextResponse.json({ 
+      path: `/uploads/${filename}` 
+    });
 
-        return NextResponse.json({ 
-          success: true,
-          path: `/uploads/${filename}`
-        });
-      } else {
-        // In production, return base64
-        const base64Image = processedImageBuffer.toString('base64');
-        return NextResponse.json({
-          success: true,
-          path: `data:image/webp;base64,${base64Image}`
-        });
-      }
-    } catch (processError) {
-      console.error('Error processing image:', processError);
-      return NextResponse.json(
-        { error: 'Error processing image' },
-        { status: 500 }
-      );
-    }
   } catch (error) {
-    console.error('Error uploading file:', error);
+    console.error('Error processing upload:', error);
     return NextResponse.json(
-      { error: 'Error uploading file' },
+      { error: 'Error processing file upload' },
       { status: 500 }
     );
   }

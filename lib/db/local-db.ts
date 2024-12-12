@@ -19,7 +19,7 @@ export class LocalDatabase {
       // Create default user if no data exists
       const defaultUser: User = {
         id: 1,
-        name: 'Tubeguruji',
+        name: 'admin',
         image: '/user.png',
         email: 'admin@tubeguruji.com',
         createdAt: new Date().toISOString()

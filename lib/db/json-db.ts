@@ -6,6 +6,14 @@ const DATA_DIR = path.join(process.cwd(), 'data');
 const PRODUCTS_FILE = path.join(DATA_DIR, 'products.json');
 const USERS_FILE = path.join(DATA_DIR, 'users.json');
 
+interface ProductsData {
+  products: Product[];
+}
+
+interface UsersData {
+  users: User[];
+}
+
 class JsonDatabase {
   private static instance: JsonDatabase;
   private data: {
@@ -35,11 +43,11 @@ class JsonDatabase {
         fs.readFile(USERS_FILE, 'utf-8')
       ]);
 
-      const { products } = JSON.parse(productsData);
-      const { users } = JSON.parse(usersData);
+      const jsonDataProducts: ProductsData = JSON.parse(productsData);
+      const jsonDataUsers: UsersData = JSON.parse(usersData);
 
-      this.data.products = products;
-      this.data.users = users;
+      this.data.products = jsonDataProducts.products || [];
+      this.data.users = jsonDataUsers.users || [];
     } catch (error) {
       console.error('Error loading data:', error);
       // Initialize with empty arrays if files don't exist
@@ -129,3 +137,68 @@ class JsonDatabase {
 }
 
 export const getDatabase = async () => JsonDatabase.getInstance();
+
+export async function readProductsFromFile(): Promise<Product[]> {
+  try {
+    const data = await fs.readFile(PRODUCTS_FILE, 'utf-8');
+    const jsonData: ProductsData = JSON.parse(data);
+    return jsonData.products || [];
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+      // If file doesn't exist, create it with empty products array
+      await writeProductsToFile([]);
+      return [];
+    }
+    console.error('Error reading products from file:', error);
+    return [];
+  }
+}
+
+export async function writeProductsToFile(products: Product[]): Promise<void> {
+  try {
+    // Ensure the data directory exists
+    await fs.mkdir(DATA_DIR, { recursive: true });
+    
+    const data: ProductsData = { products };
+    await fs.writeFile(PRODUCTS_FILE, JSON.stringify(data, null, 2));
+  } catch (error) {
+    console.error('Error writing products to file:', error);
+    throw error;
+  }
+}
+
+export async function addProductToFile(product: Product): Promise<Product> {
+  try {
+    const products = await readProductsFromFile();
+    const newProduct = {
+      ...product,
+      id: products.length + 1,
+      createdAt: new Date().toISOString(),
+      userId: product.userId || 1,
+      image: product.image.startsWith('/uploads/') 
+        ? product.image 
+        : `/uploads/${product.image}`,
+      tags: product.tags || null,
+      highlights: product.highlights || null,
+      format: product.format || null,
+      storage: product.storage || null
+    };
+    
+    products.push(newProduct);
+    await writeProductsToFile(products);
+    return newProduct;
+  } catch (error) {
+    console.error('Error adding product:', error);
+    throw error;
+  }
+}
+
+export async function getProductByIdFromFile(id: number): Promise<Product | null> {
+  const products = await readProductsFromFile();
+  return products.find(p => p.id === id) || null;
+}
+
+export async function getProductBySlugFromFile(slug: string): Promise<Product | null> {
+  const products = await readProductsFromFile();
+  return products.find(p => p.slug === slug) || null;
+}

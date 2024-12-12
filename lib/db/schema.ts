@@ -16,15 +16,36 @@ export const users = sqliteTable('users', {
 export const products = sqliteTable('products', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   name: text('name').notNull(),
+  description: text('description').notNull(),
   price: integer('price').notNull(),
   image: text('image').notNull(),
   category: text('category').notNull(),
+  slug: text('slug').notNull(),
+  tags: text('tags', { mode: 'json' }).$type<string[]>(),
+  highlights: text('highlights', { mode: 'json' }).$type<string[]>(),
+  format: text('format'),
+  storage: text('storage'),
   userId: integer('user_id').notNull().references(() => users.id),
   createdAt: text('created_at').default(sql`CURRENT_TIMESTAMP`),
 });
 
 export type User = typeof users.$inferSelect;
-export type NewUser = typeof users.$inferInsert;
+export type Product = {
+  id: number;
+  name: string;
+  description: string;
+  price: number;
+  image: string;
+  category: string;
+  slug: string;
+  tags: string[] | null;
+  highlights: string[] | null;
+  format: string | null;
+  storage: string | null;
+  userId: number;
+  createdAt: string | null;
+};
 
-export type Product = typeof products.$inferSelect;
-export type NewProduct = typeof products.$inferInsert;
+export type NewProduct = Omit<Product, 'id' | 'createdAt' | 'slug'> & {
+  createdAt?: string | null;
+};

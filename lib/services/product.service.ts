@@ -1,5 +1,4 @@
 import type { Product, NewProduct } from '../db/schema';
-import { readProducts, addProduct, getProductById as getProductByIdFromStorage } from '../db/storage';
 
 export type ProductWithUser = Product & {
   user: {
@@ -8,37 +7,21 @@ export type ProductWithUser = Product & {
   }
 };
 
-async function syncLocalData(products: Product[]) {
-  try {
-    const response = await fetch('/api/sync', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ products }),
-    });
-
-    if (!response.ok) {
-      throw new Error('Failed to sync data');
-    }
-
-    return await response.json();
-  } catch (error) {
-    console.error('Error syncing local data:', error);
-  }
+function createSlug(name: string): string {
+  return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
 }
 
 export async function getAllProducts(): Promise<ProductWithUser[]> {
   try {
-    const products = await readProducts();
-    
-    // Sync local data in the background
-    syncLocalData(products).catch(console.error);
-    
+    const response = await fetch('/api/products');
+    if (!response.ok) {
+      throw new Error('Failed to fetch products');
+    }
+    const products = await response.json();
     return products.map(product => ({
       ...product,
       user: {
-        name: 'Demo User',
+        name: 'Admin',
         image: null,
       },
     }));
@@ -50,31 +33,66 @@ export async function getAllProducts(): Promise<ProductWithUser[]> {
 
 export async function getProductById(id: number): Promise<ProductWithUser | null> {
   try {
-    const product = await getProductByIdFromStorage(id);
+    const response = await fetch(`/api/products/${id}`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch product');
+    }
+    const product = await response.json();
     if (!product) return null;
 
     return {
       ...product,
       user: {
-        name: 'Demo User',
+        name: 'Admin',
         image: null,
       },
     };
   } catch (error) {
-    console.error('Error getting product by id:', error);
-    throw error;
+    console.error('Error getting product:', error);
+    return null;
+  }
+}
+
+export async function getProductBySlug(slug: string): Promise<ProductWithUser | null> {
+  try {
+    const response = await fetch(`/api/products/slug/${slug}`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch product');
+    }
+    const product = await response.json();
+    if (!product) return null;
+
+    return {
+      ...product,
+      user: {
+        name: 'Admin',
+        image: null,
+      },
+    };
+  } catch (error) {
+    console.error('Error getting product:', error);
+    return null;
   }
 }
 
 export async function createProduct(data: NewProduct): Promise<Product> {
   try {
-    const product = await addProduct(data);
-    
-    // Sync local data after creating new product
-    const products = await readProducts();
-    await syncLocalData(products);
-    
-    return product;
+    const response = await fetch('/api/products', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        ...data,
+        slug: createSlug(data.name),
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to create product');
+    }
+
+    return response.json();
   } catch (error) {
     console.error('Error creating product:', error);
     throw error;

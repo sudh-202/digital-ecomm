@@ -1,4 +1,4 @@
-import { writeFile } from 'fs/promises';
+// import { writeFile } from 'fs/promises';
 import { NextRequest, NextResponse } from 'next/server';
 import path from 'path';
 import sharp from 'sharp';

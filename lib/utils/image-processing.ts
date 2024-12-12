@@ -1,6 +1,6 @@
-import sharp from 'sharp';
-import path from 'path';
-import fs from 'fs/promises';
+// import sharp from 'sharp';
+// import path from 'path';
+// import fs from 'fs/promises';
 
 export async function processAndSaveImage(
   file: File,

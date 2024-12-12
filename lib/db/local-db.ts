@@ -45,13 +45,16 @@ class LocalDatabase {
   }
 
   public getProducts(): (Product & { user: Pick<User, 'name' | 'image'> })[] {
-    return this.data.products.map(product => ({
-      ...product,
-      user: {
-        name: this.data.users.find(u => u.id === product.userId)?.name || '',
-        image: this.data.users.find(u => u.id === product.userId)?.image || null
-      }
-    }));
+    return this.data.products.map(product => {
+      const user = this.data.users.find(u => u.id === product.userId);
+      return {
+        ...product,
+        user: {
+          name: user?.name || '',
+          image: user?.image || null
+        }
+      };
+    });
   }
 
   public getUsers(): User[] {

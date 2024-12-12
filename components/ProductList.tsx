@@ -7,29 +7,42 @@ import { getAllProducts } from "../lib/services/product.service";
 import type { ProductWithUser } from "../lib/services/product.service";
 import { User } from "lucide-react";
 import { Button } from "./ui/button";
-// import { useTheme } from "next-themes";
 import { useCart } from "@/context/cart-context";
 import { toast } from "sonner";
 
 export default function ProductList() {
   const [products, setProducts] = useState<ProductWithUser[]>([]);
   const [loading, setLoading] = useState(true);
-  // const { theme } = useTheme();
   const { addToCart } = useCart();
 
-  useEffect(() => {
-    const loadProducts = async () => {
-      try {
-        const products = await getAllProducts();
-        setProducts(products);
-      } catch (error) {
-        console.error("Error loading products:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const fetchProducts = async () => {
+    try {
+      const fetchedProducts = await getAllProducts();
+      setProducts(prevProducts => {
+        // Only update if there are changes
+        const hasChanges = JSON.stringify(prevProducts) !== JSON.stringify(fetchedProducts);
+        if (hasChanges) {
+          toast.success("New products available!");
+        }
+        return hasChanges ? fetchedProducts : prevProducts;
+      });
+    } catch (error) {
+      console.error("Error loading products:", error);
+      toast.error("Failed to fetch products");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    loadProducts();
+  // Initial load
+  useEffect(() => {
+    fetchProducts();
+  }, []);
+
+  // Polling for updates every 30 seconds
+  useEffect(() => {
+    const pollInterval = setInterval(fetchProducts, 30000);
+    return () => clearInterval(pollInterval);
   }, []);
 
   const handleAddToCart = (product: ProductWithUser) => {

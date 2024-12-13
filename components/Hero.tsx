@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+// import Image from "next/image";
 import { Button } from "./ui/button";
 import { useEffect, useRef } from 'react'
 
@@ -18,7 +18,7 @@ const Hero = () => {
 
   return (
     <div className="relative w-full">
-      <section className="relative min-h-screen flex items-center justify-between pt-24 px-6 md:px-10 overflow-hidden bg-gray-50 dark:bg-gray-900">
+      <section className="relative h-[80vh] flex items-center justify-between pt-24 px-6 md:px-10 overflow-hidden bg-gray-50 dark:bg-gray-900">
         {/* Gradient Background */}
         <div className="absolute inset-0 z-0">
           {/* Rotating and revolving gradient circles */}

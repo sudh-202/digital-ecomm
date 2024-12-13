@@ -56,22 +56,24 @@ export default function ProductInfo({ params }: ProductInfoProps) {
               <Image
                 src={`/api/images/${product.image.split('/').pop()}`}
                 alt=""
-                fill
-                className="object-cover opacity-50 dark:opacity-50"
+               fill
+                className="object-cover opacity-60 dark:opacity-80"
                 priority
               />
             </div>
             <div className="bg-white/80 dark:bg-black/80 backdrop-blur-sm p-10 shadow-lg relative z-10">
               <div className="flex justify-between items-start">
                 <div>
-                  <h1 className="text-3xl font-bold text-gray-800 dark:text-gray-100">
-                    {product.name}
+                  <h1 className="text-5xl font-semibold tracking-wide text-gray-800 dark:text-gray-100">
+                    {product.name}✅
                   </h1>
-                  <p className="text-gray-600 dark:text-gray-300 mt-2">{product.description}</p>
+                  <p className="text-gray-600 text-xl dark:text-gray-300 mt-2">
+                    {product.description.split(' ').slice(0, 12).join(' ')}...
+                  </p>
                   <div className="mt-4">
                     <span className="text-sm text-gray-500 dark:text-gray-400">By </span>
-                    <span className="font-medium text-green-600 dark:text-green-400">
-                      {product.user.name}
+                    <span className="font-medium text-blue-700 dark:text-blue-500">
+                      {product.user.name} 😎
                     </span>
                   </div>
                   <div className="flex flex-wrap gap-2 mt-4">
@@ -79,7 +81,7 @@ export default function ProductInfo({ params }: ProductInfoProps) {
                       <Badge
                         key={index}
                         variant="secondary"
-                        className="bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300"
+                        className="bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-white text-md"
                       >
                         {tag}
                       </Badge>
@@ -92,42 +94,42 @@ export default function ProductInfo({ params }: ProductInfoProps) {
                   <Button
                     variant="outline"
                     size="icon"
-                    className="hover:bg-green-50 dark:hover:bg-green-900 dark:border-green-700"
+                    className="hover:bg-green-50 dark:hover:bg-blue-900 dark:border-blue-700"
                   >
-                    <Heart className="h-4 w-4 text-green-600 dark:text-green-400" />
+                    <Heart className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                   </Button>
                   <Button
                     variant="outline"
                     size="icon"
-                    className="hover:bg-green-50 dark:hover:bg-green-900 dark:border-green-700"
+                    className="hover:bg-green-50 dark:hover:bg-blue-900 dark:border-blue-700"
                   >
-                    <Eye className="h-4 w-4 text-green-600 dark:text-green-400" />
+                    <Eye className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                   </Button>
                   <Button
-                    className="bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-800"
+                    className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800"
                     onClick={() => {
                       addToCart(product);
                       toast.success("Added to cart!");
                     }}
                   >
-                    <ShoppingCart className="h-4 w-4 mr-2" />
-                    Add to Cart
+                    <ShoppingCart className="h-4 w-4 mr-2 dark:text-white "/>
+                    <p className="text-white">Add to Cart</p>
                   </Button>
                 </div>
               </div>
             </div>
           </div>
 
-          <div className="mx-auto max-w-7xl  px-4">
+          <div className="max-w-7xl mx-auto  px-4">
             {/* Product Image Card */}
             <div className="py-6">
-              <div className="relative overflow-hidden">
+              <div className="relative  w-full overflow-hidden">
                 <Image
                   src={`/api/images/${product.image.split('/').pop()}`}
                   alt={product.name}
                   width={1200}
                   height={100}
-                  className="object-cover rounded-2xl w-full h-auto"
+                  className="object-cover rounded-2xl"
                   priority
                 />
               </div>
@@ -149,10 +151,10 @@ export default function ProductInfo({ params }: ProductInfoProps) {
                   <h2 className="text-3xl font-semibold mb-4 text-gray-800 dark:text-gray-100">
                     Highlights
                   </h2>
-                  <ul className="list-disc pl-5 space-y-2">
+                  <ul className="list-none  space-y-2">
                     {product.highlights?.map((highlight, index) => (
-                      <li key={index} className="text-gray-600 dark:text-gray-300">
-                        {highlight}
+                      <li key={index} className="text-gray-600 dark:text-gray-300 text-xl">
+                        ✅ {highlight}
                       </li>
                     )) || (
                       <li className="text-gray-600 dark:text-gray-300">

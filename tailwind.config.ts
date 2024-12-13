@@ -71,11 +71,34 @@ module.exports = {
   				to: {
   					height: '0'
   				}
-  			}
+  			},
+  			'rotate-gradient': {
+          '0%, 100%': { transform: 'rotate(0deg)' },
+          '50%': { transform: 'rotate(180deg)' },
+        },
+        'revolve-ellipse': {
+          '0%': { transform: 'translate(-50%, -50%) rotate(0deg) translateX(20px)' },
+          '50%': { transform: 'translate(-50%, -50%) rotate(180deg) translateX(40px)' },
+          '100%': { transform: 'translate(-50%, -50%) rotate(360deg) translateX(20px)' },
+        },
+        'comet': {
+          '0%': { 
+            transform: 'translateX(-100%) translateY(0%) rotate(-45deg)',
+            opacity: '0'
+          },
+          '20%, 80%': { opacity: '1' },
+          '100%': { 
+            transform: 'translateX(200%) translateY(0%) rotate(-45deg)',
+            opacity: '0'
+          },
+        }
   		},
   		animation: {
   			'accordion-down': 'accordion-down 0.2s ease-out',
-  			'accordion-up': 'accordion-up 0.2s ease-out'
+  			'accordion-up': 'accordion-up 0.2s ease-out',
+  			'rotate-gradient': 'rotate-gradient 8s linear infinite',
+        'revolve-ellipse': 'revolve-ellipse 12s linear infinite',
+        'comet': 'comet 8s ease-in-out infinite',
   		}
   	}
   },

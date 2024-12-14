@@ -18,7 +18,7 @@ const Hero = () => {
 
   return (
     <div className="relative w-full">
-      <section className="relative h-[80vh] flex items-center justify-between pt-24 px-6 md:px-10 overflow-hidden bg-gray-50 dark:bg-gray-900">
+      <section className="relative md:h-[80vh] flex items-center justify-between pt-24 px-6 md:px-10 overflow-hidden bg-gray-50 dark:bg-gray-900">
         {/* Gradient Background */}
         <div className="absolute inset-0 z-0">
           {/* Rotating and revolving gradient circles */}

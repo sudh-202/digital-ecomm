@@ -16,7 +16,7 @@ export default function Navbar() {
   const [, setIsMobileMenuOpen] = useState(false);
 
   return (
-    <header className="fixed top-0 w-full z-50 bg-background border-b border-border">
+    <header className="fixed top-0 w-full z-50 bg-transparent">
       <div className="max-w-7xl mx-auto px-2 sm:px-4">
         <div className="flex items-center justify-between h-14 sm:h-16">
           {/* Logo */}

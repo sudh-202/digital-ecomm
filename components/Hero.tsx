@@ -18,14 +18,14 @@ const Hero = () => {
 
   return (
     <div className="relative w-full">
-      <section className="relative md:h-[80vh] flex items-center justify-between pt-24 px-6 md:px-10 overflow-hidden bg-gray-50 dark:bg-gray-900">
+      <section className="relative h-[65vh] flex items-start justify-between pt-24 px-6 md:px-10 overflow-hidden bg-gray-50 dark:bg-gray-900">
         {/* Gradient Background */}
         <div className="absolute inset-0 z-0">
           {/* Rotating and revolving gradient circles */}
-          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px]">
+          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[10%] aspect-square">
             <div className="absolute inset-0 rounded-full bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 opacity-75 dark:opacity-90 blur-3xl animate-rotate-gradient" />
           </div>
-          <div className="absolute left-1/2 top-1/2 w-[500px] h-[500px] animate-revolve-ellipse">
+          <div className="absolute left-1/2 top-1/2 w-[25%] aspect-square animate-revolve-ellipse">
             <div className="absolute inset-0 rounded-full bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500 opacity-75 dark:opacity-90 blur-2xl animate-rotate-gradient" />
           </div>
           
@@ -51,7 +51,7 @@ const Hero = () => {
         </div>
 
         {/* Content */}
-        <div className="relative z-20 max-w-7xl mx-auto w-full">
+        <div className="relative z-20 max-w-7xl mx-auto w-full md:mt-20">
           <div className="flex flex-col md:flex-row items-center justify-between gap-12">
             {/* Left Content */}
             <div className="flex-1 text-center md:text-left">

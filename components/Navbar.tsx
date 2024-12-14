@@ -2,16 +2,18 @@
 
 import Link from "next/link";
 import { ThemeToggle } from "./theme-toggle";
-import { ShoppingCart, Menu } from "lucide-react";
+import { ShoppingCart, Menu, UserCog, LogIn } from "lucide-react";
 import { useCart } from "@/context/cart-context";
 import { CartSidebar } from "./CartSidebar";
 import { Button } from "./ui/button";
 import { navLinks } from "@/constant";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "./ui/sheet";
 import { useState, useEffect } from "react";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function Navbar() {
   const { items, setIsOpen } = useCart();
+  const { user } = useAuth();
   const cartCount = items.reduce((total, item) => total + item.quantity, 0);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [hasScrolled, setHasScrolled] = useState(false);
@@ -55,6 +57,29 @@ export default function Navbar() {
           {/* Right Side Actions */}
           <div className="flex items-center space-x-2 sm:space-x-4">
             <ThemeToggle />
+            
+            {user?.role === 'admin' ? (
+              <Link href="/dashboard">
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="w-9 h-9 sm:w-10 sm:h-10"
+                >
+                  <UserCog className="h-5 w-5 sm:h-6 sm:w-6 flex-shrink-0 text-gray-400 group-hover:text-gray-500" />
+                </Button>
+              </Link>
+            ) : (
+              <Link href="/auth/login">
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="w-9 h-9 sm:w-10 sm:h-10"
+                >
+                  <LogIn className="h-5 w-5 sm:h-6 sm:w-6 flex-shrink-0 text-gray-400 group-hover:text-gray-500" />
+                </Button>
+              </Link>
+            )}
+            
             <Button 
               variant="ghost" 
               size="icon" 

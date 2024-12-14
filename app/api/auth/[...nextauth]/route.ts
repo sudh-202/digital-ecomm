@@ -5,12 +5,6 @@ import { USERS } from '@/config/users';
 const JWT_SECRET = 'your-secret-key';
 const COOKIE_NAME = 'auth_token';
 
-interface DecodedToken {
-  id: number;
-  email: string;
-  role: string;
-}
-
 export async function POST(request: Request) {
   try {
     const body = await request.json();

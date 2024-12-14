@@ -8,15 +8,30 @@ import { CartSidebar } from "./CartSidebar";
 import { Button } from "./ui/button";
 import { navLinks } from "@/constant";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "./ui/sheet";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export default function Navbar() {
   const { items, setIsOpen } = useCart();
   const cartCount = items.reduce((total, item) => total + item.quantity, 0);
-  const [, setIsMobileMenuOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [hasScrolled, setHasScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollPosition = window.scrollY;
+      setHasScrolled(scrollPosition > 50);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   return (
-    <header className="fixed top-0 w-full z-50 bg-transparent">
+    <header className={`fixed top-0 w-full z-50 transition-colors duration-300 ${
+      hasScrolled 
+        ? 'bg-[#F9FAFB] dark:bg-[#111827] shadow-sm' 
+        : 'bg-transparent'
+    }`}>
       <div className="max-w-7xl mx-auto px-2 sm:px-4">
         <div className="flex items-center justify-between h-14 sm:h-16">
           {/* Logo */}
@@ -48,7 +63,7 @@ export default function Navbar() {
             >
               <ShoppingCart className="h-5 w-5 sm:h-6 sm:w-6 flex-shrink-0 text-gray-400 group-hover:text-gray-500" />
               {cartCount > 0 && (
-                <span className="absolute -top-2 -right-2 h-4 w-4 sm:h-5 sm:w-5 rounded-full bg-amber-500 flex items-center justify-center text-[10px] sm:text-xs text-white">
+                <span className="absolute -top-2 -right-2 h-4 w-4 sm:h-5 sm:w-5 rounded-full bg-blue-700 flex items-center justify-center text-[10px] sm:text-xs text-white">
                   {cartCount}
                 </span>
               )}

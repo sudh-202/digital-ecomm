@@ -158,11 +158,11 @@ export default function ProductList() {
           {/* <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">Our Products</h2> */}
           
           {/* Category Filter Buttons */}
-          <div className="flex flex-wrap gap-3">
+          <div className="flex flex-wrap gap-2">
             <Button
               variant={selectedCategories.length === 0 ? "default" : "outline"}
               onClick={() => setSelectedCategories([])}
-              className="rounded-full bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm"
+              className="rounded-full bg-white/80  dark:bg-gray-800/80 backdrop-blur-sm dark:text-white text-black border-blue-700 border-2 "
             >
               All
             </Button>
@@ -171,7 +171,7 @@ export default function ProductList() {
                 key={category}
                 variant={selectedCategories.includes(category) ? "default" : "outline"}
                 onClick={() => handleCategoryChange(category)}
-                className="rounded-full bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm"
+                className="rounded-full bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm dark:text-white text-black"
               >
                 {category}
               </Button>

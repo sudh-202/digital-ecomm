@@ -4,10 +4,17 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/context/cart-context";
 import Image from "next/image";
+import { useRouter } from 'next/navigation';
 
 export function CartSidebar() {
   const { isOpen, setIsOpen, items, removeFromCart, updateQuantity } = useCart();
   const total = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const router = useRouter();
+
+  const handleCheckout = () => {
+    setIsOpen(false);
+    router.push('/checkout');
+  };
 
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
@@ -59,11 +66,15 @@ export function CartSidebar() {
         </div>
         {items.length > 0 ? (
           <div className="mt-8 space-y-4">
-            <div className="flex justify-between text-lg font-semibold">
+            <div className="flex justify-between text-lg font-semibold ">
               <span>Total:</span>
               <span>${total.toFixed(2)}</span>
             </div>
-            <Button className="w-full" size="lg">
+            <Button 
+              className="w-full bg-blue-700 hover:bg-blue-800" 
+              size="lg"
+              onClick={handleCheckout}
+            >
               Checkout
             </Button>
           </div>

@@ -15,7 +15,7 @@ export default function Navbar() {
   const { items, setIsOpen } = useCart();
   const { user } = useAuth();
   const cartCount = items.reduce((total, item) => total + item.quantity, 0);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [, setIsMobileMenuOpen] = useState(false);
   const [hasScrolled, setHasScrolled] = useState(false);
 
   useEffect(() => {

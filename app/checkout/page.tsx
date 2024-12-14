@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+// import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Image from 'next/image';
 import { toast } from 'sonner';
 import { CreditCard } from '@/components/ui/credit-card';

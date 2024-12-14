@@ -5,6 +5,12 @@ import { cookies } from 'next/headers';
 const JWT_SECRET = 'your-secret-key';
 const COOKIE_NAME = 'auth_token';
 
+interface DecodedToken {
+  id: number;
+  email: string;
+  role: string;
+}
+
 export async function GET() {
   try {
     const cookieStore = cookies();
@@ -20,7 +26,7 @@ export async function GET() {
     }
 
     try {
-      const decoded = verify(token.value, JWT_SECRET) as any;
+      const decoded = verify(token.value, JWT_SECRET) as DecodedToken;
       console.log('Token verified, user:', decoded);
 
       return NextResponse.json({
@@ -31,15 +37,15 @@ export async function GET() {
           role: decoded.role
         }
       });
-    } catch (error) {
-      console.error('Token verification failed:', error);
+    } catch {
+      console.error('Token verification failed');
       return NextResponse.json(
         { error: 'Invalid token' },
         { status: 401 }
       );
     }
-  } catch (error) {
-    console.error('Verify endpoint error:', error);
+  } catch {
+    console.error('Verify endpoint error');
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

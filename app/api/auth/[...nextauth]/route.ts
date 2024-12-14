@@ -1,17 +1,16 @@
-import NextAuth from 'next-auth';
+import NextAuth, { type NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import bcrypt from 'bcryptjs';
+import { USERS } from '@/config/users';
 
-// This would typically come from your database
-const ADMIN_USER = {
-  id: '1',
-  email: process.env.ADMIN_EMAIL || 'admin@example.com',
-  // In production, this would be a hashed password stored in your database
-  password: process.env.ADMIN_PASSWORD || 'admin123',
-  role: 'admin'
-};
+interface User {
+  id: string;
+  email: string;
+  role: string;
+  password: string;
+}
 
-const handler = NextAuth({
+export const authOptions: NextAuthOptions = {
   providers: [
     CredentialsProvider({
       name: 'Credentials',
@@ -19,48 +18,59 @@ const handler = NextAuth({
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" }
       },
-      async authorize(credentials) {
+      async authorize(credentials): Promise<User | null> {
         if (!credentials?.email || !credentials?.password) {
           throw new Error('Missing credentials');
         }
 
-        // In production, you would fetch the user from your database
-        if (credentials.email === ADMIN_USER.email) {
-          // For development, we're using a simple password comparison
-          // In production, use bcrypt.compare with hashed passwords
-          if (credentials.password === ADMIN_USER.password) {
-            return {
-              id: ADMIN_USER.id,
-              email: ADMIN_USER.email,
-              role: ADMIN_USER.role,
-            };
-          }
+        const user = USERS.find(u => u.email === credentials.email);
+        
+        if (!user) {
+          console.log('User not found');
+          return null;
         }
 
-        return null;
+        const isValidPassword = await bcrypt.compare(credentials.password, user.password);
+        
+        if (!isValidPassword) {
+          console.log('Invalid password');
+          return null;
+        }
+
+        return {
+          id: user.id.toString(),
+          email: user.email,
+          role: user.role,
+          password: user.password
+        };
       }
     })
   ],
+  pages: {
+    signIn: '/auth/login',
+  },
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
         token.role = user.role;
+        token.id = user.id;
       }
       return token;
     },
     async session({ session, token }) {
-      if (session?.user) {
-        (session.user as any).role = token.role;
+      if (session.user) {
+        session.user.role = token.role as string;
+        session.user.id = token.id as string;
       }
       return session;
     }
   },
-  pages: {
-    signIn: '/auth/signin',
-  },
   session: {
-    strategy: 'jwt',
+    strategy: "jwt" as const,
+    maxAge: 24 * 60 * 60, // 24 hours
   },
-});
+  secret: process.env.NEXTAUTH_SECRET || 'your-secret-key'
+};
 
+const handler = NextAuth(authOptions);
 export { handler as GET, handler as POST };

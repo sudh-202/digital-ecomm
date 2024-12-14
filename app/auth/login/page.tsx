@@ -1,107 +1,40 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
+import { useState } from 'react';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { toast } from 'sonner';
-import { useMount, useLocation } from 'react-use';
-import { createDebug } from '@/utils/debug';
-
-const debug = createDebug('login-page');
 
 export default function Login() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
-  const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-  });
 
-  // Check authentication status on mount
-  useMount(() => {
-    debug('Login page mounted');
-    checkAuthStatus();
-  });
-
-  const checkAuthStatus = async () => {
-    try {
-      debug('Checking auth status');
-      const response = await fetch('/api/auth/verify', {
-        credentials: 'include'
-      });
-      const data = await response.json();
-      
-      if (response.ok && data.user?.role === 'admin') {
-        debug('User already authenticated, redirecting to dashboard');
-        await navigateToDashboard();
-      }
-    } catch (error) {
-      debug('Auth check error:', error);
-    }
-  };
-
-  const navigateToDashboard = async () => {
-    debug('Attempting navigation to dashboard');
-    
-    try {
-      // Try Next.js navigation
-      debug('Using Next.js router');
-      await router.push('/dashboard');
-      
-      // Check if navigation was successful
-      setTimeout(() => {
-        if (window.location.pathname !== '/dashboard') {
-          debug('Router navigation failed, using window.location');
-          window.location.href = '/dashboard';
-        }
-      }, 100);
-    } catch (error) {
-      debug('Navigation error:', error);
-      // Fallback to window.location
-      window.location.href = '/dashboard';
-    }
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
-    debug('Login attempt:', { email: formData.email });
 
     try {
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-        credentials: 'include',
+      const formData = new FormData(e.currentTarget);
+      const result = await signIn('credentials', {
+        email: formData.get('email') as string,
+        password: formData.get('password') as string,
+        redirect: false,
+        callbackUrl: '/dashboard'
       });
 
-      const data = await response.json();
-      debug('Login response:', data);
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to login');
-      }
-
-      if (data.user?.role !== 'admin') {
-        throw new Error('Unauthorized access');
+      if (!result?.ok) {
+        throw new Error('Invalid credentials');
       }
 
       toast.success('Login successful!');
-      
-      // Wait for cookie to be set
-      await new Promise(resolve => setTimeout(resolve, 100));
-      
-      // Navigate to dashboard
-      await navigateToDashboard();
-
+      router.push('/dashboard');
+      router.refresh();
     } catch (error) {
-      debug('Login error:', error);
-      toast.error(error instanceof Error ? error.message : 'An error occurred');
+      toast.error(error instanceof Error ? error.message : 'Failed to sign in');
     } finally {
       setIsLoading(false);
     }
@@ -119,10 +52,9 @@ export default function Login() {
               <Label htmlFor="email">Email</Label>
               <Input
                 id="email"
+                name="email"
                 type="email"
                 placeholder="adminsudhanshu@app.com"
-                value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 required
                 className="bg-white/50 dark:bg-gray-800/50"
               />
@@ -131,9 +63,8 @@ export default function Login() {
               <Label htmlFor="password">Password</Label>
               <Input
                 id="password"
+                name="password"
                 type="password"
-                value={formData.password}
-                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                 required
                 className="bg-white/50 dark:bg-gray-800/50"
               />

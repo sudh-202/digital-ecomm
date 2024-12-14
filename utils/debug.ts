@@ -1,8 +1,13 @@
 import debug from 'debug';
 
-export const createDebug = (namespace: string) => {
+export const createDebug = (namespace: string): debug.Debugger => {
   const logger = debug(`app:${namespace}`);
-  debug.enable('app:*');
+  
+  if (typeof window !== 'undefined') {
+    // Enable debug in browser if needed
+    debug.enable('app:*');
+  }
+  
   return logger;
 };
 

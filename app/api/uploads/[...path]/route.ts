@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { join } from 'path';
-import { createReadStream, stat } from 'fs';
+import { stat as statAsync, createReadStream } from 'fs';
 import { promisify } from 'util';
+import { lookup } from 'mime-types';
 
-const statAsync = promisify(stat);
+const stat = promisify(statAsync);
 
 export async function GET(
   request: NextRequest,
@@ -11,47 +12,37 @@ export async function GET(
 ) {
   try {
     const filePath = join(process.cwd(), 'data', 'uploads', ...params.path);
-    
+
     // Check if file exists
     try {
-      await statAsync(filePath);
-    } 
-    catch (error) {
-      return new NextResponse('File not found', { status: 404 });
+      await stat(filePath);
+    } catch {
+      return NextResponse.json(
+        { error: 'File not found' },
+        { status: 404 }
+      );
     }
 
-    // Create read stream
-    const stream = createReadStream(filePath);
+    // Get file mime type
+    const mimeType = lookup(filePath) || 'application/octet-stream';
 
-    // Determine content type based on file extension
-    const ext = filePath.split('.').pop()?.toLowerCase();
-    let contentType = 'application/octet-stream';
-    
-    switch (ext) {
-      case 'jpg':
-      case 'jpeg':
-        contentType = 'image/jpeg';
-        break;
-      case 'png':
-        contentType = 'image/png';
-        break;
-      case 'gif':
-        contentType = 'image/gif';
-        break;
-      case 'webp':
-        contentType = 'image/webp';
-        break;
-    }
+    // Create file stream
+    const fileStream = createReadStream(filePath);
 
-    // Return the file stream
-    return new NextResponse(stream as any, {
+    // Create response with appropriate headers
+    const response = new NextResponse(fileStream as unknown as BodyInit, {
       headers: {
-        'Content-Type': contentType,
+        'Content-Type': mimeType,
         'Cache-Control': 'public, max-age=31536000, immutable',
       },
     });
-  } catch (error) {
-    console.error('Error serving file:', error);
-    return new NextResponse('Internal Server Error', { status: 500 });
+
+    return response;
+  } catch (err) {
+    console.error('Error serving file:', err);
+    return NextResponse.json(
+      { error: err instanceof Error ? err.message : 'Failed to serve file' },
+      { status: 500 }
+    );
   }
 }

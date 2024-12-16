@@ -29,7 +29,7 @@ export async function POST(request: Request) {
     // Handle image upload
     const imageFile = formData.get('image') as File;
     let imagePath = '';
-    
+
     if (imageFile) {
       const bytes = await imageFile.arrayBuffer();
       const buffer = Buffer.from(bytes);
@@ -39,34 +39,25 @@ export async function POST(request: Request) {
       const extension = imageFile.name.split('.').pop();
       const filename = `${uniqueId}.${extension}`;
       
-      // Save to data/uploads directory
-      const uploadDir = join(process.cwd(), 'data', 'uploads');
-      await writeFile(join(uploadDir, filename), buffer);
-      imagePath = `/data/uploads/${filename}`;
+      // Save to public/uploads
+      const uploadDir = join(process.cwd(), 'public', 'uploads');
+      const filePath = join(uploadDir, filename);
+      await writeFile(filePath, buffer);
+      
+      imagePath = `/uploads/${filename}`;
     }
 
-    // Parse form data
+    // Create new product object
     const name = formData.get('name') as string;
     const description = formData.get('description') as string;
-    const price = parseFloat(formData.get('price') as string);
+    const price = parseInt(formData.get('price') as string);
     const category = formData.get('category') as string;
+    const tags = JSON.parse(formData.get('tags') as string);
+    const highlights = JSON.parse(formData.get('highlights') as string);
     const format = formData.get('format') as string;
     const storage = formData.get('storage') as string;
-    const userId = parseInt(formData.get('userId') as string) || 1;
-    
-    // Parse JSON strings back to arrays
-    const tags = JSON.parse(formData.get('tags') as string || '[]');
-    const highlights = JSON.parse(formData.get('highlights') as string || '[]');
-
-    if (!name || isNaN(price)) {
-      return NextResponse.json(
-        { error: 'Name and price are required' },
-        { status: 400 }
-      );
-    }
 
     const newProduct: NewProduct = {
-      id: Date.now(),
       name,
       description: description || '',
       price,
@@ -74,15 +65,19 @@ export async function POST(request: Request) {
       tags,
       highlights,
       format: format || '',
-      storage: storage || '',
       image: imagePath,
-      userId,
+      storage: storage,
+      slug: (name)
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/(^-|-$)/g, ''),
       createdAt: new Date().toISOString(),
-      slug: name.toLowerCase().replace(/[^a-z0-9]+/g, '-')
+      userId: 1  // You should replace this with the actual user ID from your auth system
     };
 
-    const savedProduct = await addProductToFile(newProduct);
-    return NextResponse.json(savedProduct);
+    const product = await addProductToFile(newProduct);
+    
+    return NextResponse.json(product);
   } catch (error) {
     console.error('Error creating product:', error);
     return NextResponse.json(

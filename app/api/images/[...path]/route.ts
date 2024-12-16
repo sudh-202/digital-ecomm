@@ -2,12 +2,14 @@ import { NextRequest, NextResponse } from 'next/server';
 import { join } from 'path';
 import fs from 'fs/promises';
 
+type Params = { path: string[] };
+
 export async function GET(
   request: NextRequest,
-  context: { params: { path: string[] } }
+  { params }: { params: Params }
 ) {
   try {
-    const filePath = join(process.cwd(), 'data', 'uploads', ...context.params.path);
+    const filePath = join(process.cwd(), 'data', 'uploads', ...params.path);
     
     // Read the file
     const file = await fs.readFile(filePath);

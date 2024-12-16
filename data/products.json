@@ -6,7 +6,11 @@
       "price": 49.99,
       "category": "Education",
       "image": "/uploads/nextjs-1734000439112.webp",
-      "tags": ["Education", "Learning", "English"],
+      "tags": [
+        "Education",
+        "Learning",
+        "English"
+      ],
       "highlights": [
         "Interactive Lessons",
         "Practice Exercises",
@@ -26,7 +30,11 @@
       "price": 79.99,
       "category": "Business",
       "image": "/uploads/the-nextjs-1734008484571.webp",
-      "tags": ["Business", "Professional", "English"],
+      "tags": [
+        "Business",
+        "Professional",
+        "English"
+      ],
       "highlights": [
         "Business Communication",
         "Email Writing",
@@ -41,32 +49,16 @@
       "createdAt": "2024-12-12T11:00:00.000Z"
     },
     {
-      "name": "English Grammar Guide",
-      "description": "Comprehensive grammar guide with examples",
-      "price": 29.99,
-      "category": "Education",
-      "image": "/uploads/this-is-json-1734000680490.webp",
-      "tags": ["Grammar", "Education", "Reference"],
-      "highlights": [
-        "Complete Grammar Rules",
-        "Practice Exercises",
-        "Common Mistakes",
-        "Quick Reference"
-      ],
-      "format": "Web App",
-      "storage": "8 Mb",
-      "userId": 1,
-      "slug": "english-grammar-guide",
-      "id": 3,
-      "createdAt": "2024-12-12T11:30:00.000Z"
-    },
-    {
       "name": "The GitHub",
       "description": "This is product for github",
       "price": 200,
       "category": "Technology",
       "image": "/uploads/github.webp",
-      "tags": ["Git", "Version Control", "Development"],
+      "tags": [
+        "Git",
+        "Version Control",
+        "Development"
+      ],
       "highlights": [
         "Repository Management",
         "Code Collaboration",
@@ -86,7 +78,11 @@
       "price": 55,
       "category": "Technology",
       "image": "/uploads/metaverse-1734035999724.webp",
-      "tags": ["VR", "Metaverse", "Technology"],
+      "tags": [
+        "VR",
+        "Metaverse",
+        "Technology"
+      ],
       "highlights": [
         "Virtual Reality",
         "3D Environments",
@@ -99,6 +95,50 @@
       "slug": "metaverse",
       "id": 5,
       "createdAt": "2024-12-12T20:39:59.827Z"
+    },
+    {
+      "name": "Nike",
+      "description": "This is nike products",
+      "price": 23,
+      "category": "business",
+      "tags": [
+        "Nike",
+        "Nike shoe",
+        "Shoe",
+        "shoe under 23"
+      ],
+      "highlights": [
+        "This is best show",
+        "the best shoe under 23"
+      ],
+      "format": "shoe",
+      "storage": "23 Mb",
+      "image": "/data/uploads/b6690bf9-eaea-48e8-bd2e-f9a97f94f219.png",
+      "userId": 1,
+      "id": 6,
+      "createdAt": "2024-12-16T05:51:34.542Z",
+      "slug": "nike"
+    },
+    {
+      "name": "Fiver",
+      "description": "This is a product for fiver ",
+      "price": 55,
+      "category": "technology",
+      "tags": [
+        "Web",
+        "Hiring"
+      ],
+      "highlights": [
+        "The best web for hiring",
+        "new web"
+      ],
+      "format": "Video, web",
+      "storage": "55 Mb",
+      "image": "/data/uploads/c48d708d-2b62-476c-830a-b28a5d5e4352.png",
+      "userId": null,
+      "id": 7,
+      "createdAt": "2024-12-16T06:41:38.626Z",
+      "slug": "fiver"
     }
   ]
 }

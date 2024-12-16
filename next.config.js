@@ -2,6 +2,7 @@
 const nextConfig = {
   images: {
     unoptimized: true,
+    domains: ['localhost'],
     remotePatterns: [
       {
         protocol: 'http',
@@ -13,23 +14,15 @@ const nextConfig = {
       },
     ],
   },
-  // Allow serving files from the data directory
   experimental: {
     serverComponentsExternalPackages: ['sharp'],
   },
-  webpack: (config) => {
-    config.module.rules.push({
-      test: /\.(png|jpg|gif|webp)$/i,
-      type: 'asset/resource',
-    });
-    return config;
-  },
-  // Configure static file serving
+  // Enable static file serving from data directory
   async rewrites() {
     return [
       {
-        source: '/uploads/:path*',
-        destination: '/data/uploads/:path*',
+        source: '/data/uploads/:path*',
+        destination: '/api/uploads/:path*',
       },
     ];
   },

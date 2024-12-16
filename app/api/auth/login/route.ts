@@ -1,9 +1,9 @@
-import { NextResponse } from 'next/server';
+  import { NextResponse } from 'next/server';
 import { sign } from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import { USERS } from '@/config/users';
 
-const JWT_SECRET = 'your-secret-key';
+const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 const COOKIE_NAME = 'auth_token';
 
 export async function POST(request: Request) {
@@ -15,14 +15,20 @@ export async function POST(request: Request) {
     
     if (!user) {
       console.log('User not found');
-      return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
+      return NextResponse.json(
+        { error: 'Invalid credentials' },
+        { status: 401 }
+      );
     }
 
+    // Verify password
     const isValidPassword = await bcrypt.compare(body.password, user.password);
-    console.log('Password validation:', isValidPassword);
-
     if (!isValidPassword) {
-      return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
+      console.log('Invalid password');
+      return NextResponse.json(
+        { error: 'Invalid credentials' },
+        { status: 401 }
+      );
     }
 
     // Create token
@@ -43,7 +49,8 @@ export async function POST(request: Request) {
         id: user.id,
         email: user.email,
         role: user.role
-      }
+      },
+      redirectTo: user.role === 'admin' ? '/dashboard' : '/'
     });
 
     // Set cookie
@@ -55,7 +62,7 @@ export async function POST(request: Request) {
       maxAge: 86400 // 1 day
     });
 
-    console.log('Login successful, cookie set');
+    console.log('Login successful for:', user.email);
     return response;
 
   } catch (error) {

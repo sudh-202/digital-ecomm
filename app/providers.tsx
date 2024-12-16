@@ -1,7 +1,22 @@
 'use client';
 
-import { SessionProvider } from 'next-auth/react';
+import { ThemeProvider } from 'next-themes';
+import { CartProvider } from '@/context/cart-context';
+import { Toaster } from 'sonner';
 
 export function Providers({ children }: { children: React.ReactNode }) {
-  return <SessionProvider>{children}</SessionProvider>;
+  return (
+    <ThemeProvider
+      attribute="class"
+      defaultTheme="dark"
+      enableSystem
+      disableTransitionOnChange
+      storageKey="digital-ecomm-theme"
+    >
+      <CartProvider>
+        {children}
+        <Toaster />
+      </CartProvider>
+    </ThemeProvider>
+  );
 }

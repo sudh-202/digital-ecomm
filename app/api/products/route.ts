@@ -4,7 +4,9 @@ import {
   writeProductsToFile, 
   addProductToFile 
 } from '@/lib/db/json-db';
-// import type { Product } from '@/lib/db/schema';
+import { writeFile } from 'fs/promises';
+import { join } from 'path';
+import { v4 as uuidv4 } from 'uuid';
 
 export async function GET() {
   try {
@@ -21,23 +23,54 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    const product = await request.json();
+    const formData = await request.formData();
     
-    // Add required fields if they don't exist
-    const newProduct = {
-      ...product,
-      id: Date.now(), // Use timestamp as a simple unique ID
+    // Handle image upload
+    const imageFile = formData.get('image') as File;
+    let imagePath = '';
+    
+    if (imageFile) {
+      const bytes = await imageFile.arrayBuffer();
+      const buffer = Buffer.from(bytes);
+      
+      // Generate unique filename
+      const uniqueId = uuidv4();
+      const extension = imageFile.name.split('.').pop();
+      const filename = `${uniqueId}.${extension}`;
+      
+      // Save to data/uploads directory
+      const uploadDir = join(process.cwd(), 'data', 'uploads');
+      await writeFile(join(uploadDir, filename), buffer);
+      imagePath = `/data/uploads/${filename}`;
+    }
+
+    // Parse JSON strings back to arrays
+    const tags = JSON.parse(formData.get('tags') as string || '[]');
+    const highlights = JSON.parse(formData.get('highlights') as string || '[]');
+
+    // Create product object
+    const product = {
+      name: formData.get('name'),
+      description: formData.get('description'),
+      price: parseFloat(formData.get('price') as string),
+      category: formData.get('category'),
+      tags,
+      highlights,
+      format: formData.get('format'),
+      storage: formData.get('storage'),
+      image: imagePath,
+      userId: parseInt(formData.get('userId') as string),
+      id: Date.now(),
       createdAt: new Date().toISOString(),
-      slug: product.name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
-      userId: product.userId || 1,
+      slug: (formData.get('name') as string).toLowerCase().replace(/[^a-z0-9]+/g, '-'),
     };
     
-    const savedProduct = await addProductToFile(newProduct);
+    const savedProduct = await addProductToFile(product);
     return NextResponse.json(savedProduct);
   } catch (error) {
     console.error('Error creating product:', error);
     return NextResponse.json(
-      { error: 'Failed to create product' },
+      { error: error instanceof Error ? error.message : 'Failed to create product' },
       { status: 500 }
     );
   }

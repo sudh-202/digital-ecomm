@@ -181,8 +181,8 @@ export default function ProductList() {
           <div className="flex justify-end">
             <Sheet>
               <SheetTrigger asChild>
-                <Button variant="outline" size="sm" className="gap-2 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm">
-                  <Filter className="h-4 w-4" />
+                <Button variant="outline" size="sm" className="gap-2 dark:bg-white/80 backdrop-blur-sm">
+                  <Filter className="h-4 w-4"/>
                   More Filters
                 </Button>
               </SheetTrigger>
@@ -276,7 +276,7 @@ export default function ProductList() {
                         handleAddToCart(product);
                       }}
                       variant="outline"
-                      className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm"
+                      className="dark:bg-white/80  backdrop-blur-sm"
                     >
                       Add to Cart
                     </Button>

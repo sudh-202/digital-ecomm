@@ -18,11 +18,11 @@ export function CartSidebar() {
 
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
-      <SheetContent className="w-[400px] sm:w-[540px]">
+      <SheetContent className="w-[400px] sm:w-[540px] dark:bg-black bg-white">
         <SheetHeader>
-          <SheetTitle>Shopping Cart ({items.length} items)</SheetTitle>
+          <SheetTitle className="dark:text-white text-black">Shopping Cart ({items.length} items)</SheetTitle>
         </SheetHeader>
-        <div className="mt-8 space-y-4">
+        <div className="mt-8 space-y-6 dark:text-white text-black ">
           {items.map((item) => (
             <div key={item.id} className="flex items-center space-x-4">
               <div className="relative h-16 w-16">
@@ -35,7 +35,7 @@ export function CartSidebar() {
               </div>
               <div className="flex-1">
                 <h3 className="font-medium">{item.name}</h3>
-                <p className="text-sm text-gray-500">${item.price}</p>
+                <p className="text-sm dark:text-white text-black">${item.price}</p>
                 <div className="flex items-center space-x-2 mt-1">
                   <Button
                     variant="outline"
@@ -65,7 +65,7 @@ export function CartSidebar() {
           ))}
         </div>
         {items.length > 0 ? (
-          <div className="mt-8 space-y-4">
+          <div className="mt-8 space-y-4 dark:text-white text-black">
             <div className="flex justify-between text-lg font-semibold ">
               <span>Total:</span>
               <span>${total.toFixed(2)}</span>

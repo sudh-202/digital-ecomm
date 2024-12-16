@@ -9,7 +9,8 @@ const stat = promisify(statAsync);
 export async function GET(
   request: NextRequest,
   { params }: { params: { path: string[] } }
-) {
+) 
+{
   try {
     const filePath = join(process.cwd(), 'data', 'uploads', ...params.path);
 

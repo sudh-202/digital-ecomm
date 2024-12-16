@@ -3,6 +3,7 @@ import { join } from 'path';
 import { stat as statAsync, createReadStream } from 'fs';
 import { promisify } from 'util';
 import { lookup } from 'mime-types';
+import type Response  from 'next';
 
 const stat = promisify(statAsync);
 
@@ -31,7 +32,7 @@ export async function GET(
     const fileStream = createReadStream(filePath);
 
     // Create response with appropriate headers
-    const response = new NextResponse(fileStream as unknown as BodyInit, {
+    const response: Response = new NextResponse(fileStream as unknown as BodyInit, {
       headers: {
         'Content-Type': mimeType,
         'Cache-Control': 'public, max-age=31536000, immutable',

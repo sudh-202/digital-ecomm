@@ -54,6 +54,7 @@
     "@netlify/plugin-nextjs": "^5.9.0",
     "@shadcn/ui": "^0.0.4",
     "@types/debug": "^4.1.12",
+    "@types/mime-types": "^2.1.4",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",

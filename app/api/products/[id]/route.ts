@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { readProductsFromFile, writeProductsToFile } from '@/lib/db/json-db';
+import { readProductsFromFile, writeProductsToFile, getProductByIdFromFile } from '@/lib/db/json-db';
 import { unlink, writeFile } from 'fs/promises';
 import { join } from 'path';
 import { v4 as uuidv4 } from 'uuid';
@@ -82,16 +82,16 @@ export async function PUT(
     // Update product
     const updatedProduct = {
       ...existingProduct,
-      name: formData.get('name'),
-      description: formData.get('description'),
-      price: parseFloat(formData.get('price') as string),
-      category: formData.get('category'),
+      name: formData.get('name') as string || existingProduct.name,
+      description: formData.get('description') as string || existingProduct.description,
+      price: parseFloat(formData.get('price') as string || existingProduct.price.toString()),
+      category: formData.get('category') as string || existingProduct.category,
       tags,
       highlights,
-      format: formData.get('format'),
-      storage: formData.get('storage'),
+      format: formData.get('format') as string || existingProduct.format,
+      storage: formData.get('storage') as string || existingProduct.storage,
       image: imagePath,
-      slug: (formData.get('name') as string).toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+      slug: (formData.get('name') as string || existingProduct.name).toLowerCase().replace(/[^a-z0-9]+/g, '-'),
     };
 
     products[productIndex] = updatedProduct;

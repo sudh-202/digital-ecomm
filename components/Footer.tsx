@@ -3,7 +3,7 @@ import { Facebook, Twitter, Instagram, Youtube, Mail, Phone, MapPin } from 'luci
 
 export function Footer() {
   return (
-    <footer className="border-t dark:border-gray-800">
+    <footer className="border-t dark:border-gray-800 dark:bg-black bg-white">
       <div className="mx-auto max-w-7xl px-4 py-8 sm:py-12">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
           {/* Company Info */}

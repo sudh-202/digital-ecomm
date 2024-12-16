@@ -319,7 +319,7 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
                 {typeof product.image === 'string' && (
                   <div className="mt-2 relative w-full h-48">
                     <Image
-                      src={`data/uploads/${product.image}`}
+                      src={product.image.startsWith('/data') ? product.image : `/data${product.image}`}
                       alt={product.name}
                       fill
                       className="object-cover rounded-md"

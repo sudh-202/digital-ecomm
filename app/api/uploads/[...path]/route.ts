@@ -15,7 +15,8 @@ export async function GET(
     // Check if file exists
     try {
       await statAsync(filePath);
-    } catch (error) {
+    } 
+    catch (error) {
       return new NextResponse('File not found', { status: 404 });
     }
 

@@ -1,10 +1,6 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import { CartProvider } from "@/context/cart-context";
-import { Toaster } from "sonner";
-import Navbar from "@/components/Navbar";
-import { Footer } from "@/components/Footer";
 import { Providers } from './providers';
 
 const inter = Inter({ subsets: ["latin"] });
@@ -23,13 +19,7 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
         <Providers>
-          <div className="flex min-h-screen flex-col">
-            <Navbar />
-            <main className="flex-1">
-              {children}
-            </main>
-            <Footer/>
-          </div>
+          {children}
         </Providers>
       </body>
     </html>

@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 import { sign } from 'jsonwebtoken';
-import bcrypt from 'bcryptjs';
 import { USERS } from '@/config/users';
 
 const JWT_SECRET = 'your-secret-key';
@@ -18,10 +17,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
     }
 
-    const isValidPassword = await bcrypt.compare(body.password, user.password);
-    console.log('Password validation:', isValidPassword);
-
-    if (!isValidPassword) {
+    if (body.password !== user.password) {
+      console.log('Invalid password');
       return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
     }
 

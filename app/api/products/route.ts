@@ -7,7 +7,6 @@ import {
 import { writeFile } from 'fs/promises';
 import { join } from 'path';
 import { v4 as uuidv4 } from 'uuid';
-import { NewProduct } from '@/lib/db/schema';
 
 export async function GET() {
   try {
@@ -24,7 +23,7 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    const formData = await request.formData();
+    const product = await request.json();
     
     // Handle image upload
     const imageFile = formData.get('image') as File;
@@ -46,31 +45,24 @@ export async function POST(request: Request) {
     }
 
     // Parse JSON strings back to arrays
-    const tags = JSON.parse(formData.get('tags') as string || '[]') as string[];
-    const highlights = JSON.parse(formData.get('highlights') as string || '[]') as string[];
-    const name = formData.get('name') as string;
-    const price = parseFloat(formData.get('price') as string);
-    const userId = parseInt(formData.get('userId') as string) || 1; // Default to 1 if not provided
+    const tags = JSON.parse(formData.get('tags') as string || '[]');
+    const highlights = JSON.parse(formData.get('highlights') as string || '[]');
 
-    if (!name || isNaN(price)) {
-      return NextResponse.json(
-        { error: 'Invalid product data' },
-        { status: 400 }
-      );
-    }
-
-    // Create product object with proper types
-    const newProduct: NewProduct = {
-      name,
-      description: formData.get('description') as string || '',
-      price,
-      category: formData.get('category') as string || 'other',
+    // Create product object
+    const product = {
+      name: formData.get('name'),
+      description: formData.get('description'),
+      price: parseFloat(formData.get('price') as string),
+      category: formData.get('category'),
       tags,
       highlights,
-      format: formData.get('format') as string || '',
-      storage: formData.get('storage') as string || '',
-      image: imagePath || '',
-      userId,
+      format: formData.get('format'),
+      storage: formData.get('storage'),
+      image: imagePath,
+      userId: parseInt(formData.get('userId') as string),
+      id: Date.now(),
+      createdAt: new Date().toISOString(),
+      slug: (formData.get('name') as string).toLowerCase().replace(/[^a-z0-9]+/g, '-'),
     };
     
     const savedProduct = await addProductToFile(newProduct);
@@ -78,7 +70,7 @@ export async function POST(request: Request) {
   } catch (error) {
     console.error('Error creating product:', error);
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Failed to create product' },
+      { error: 'Failed to create product' },
       { status: 500 }
     );
   }

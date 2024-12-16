@@ -3,24 +3,22 @@ import { readProductsFromFile, writeProductsToFile } from '@/lib/db/json-db';
 import { unlink, writeFile } from 'fs/promises';
 import { join } from 'path';
 import { v4 as uuidv4 } from 'uuid';
-import { Product } from '@/lib/db/schema';
 
 export async function GET(
   request: Request,
   { params }: { params: { id: string } }
 ) {
   try {
-    const productId = parseInt(params.id);
-    const products = await readProductsFromFile();
-    const product = products.find(p => p.id === productId);
-
+    const id = parseInt(params.id);
+    const product = await getProductByIdFromFile(id);
+    
     if (!product) {
       return NextResponse.json(
         { error: 'Product not found' },
         { status: 404 }
       );
     }
-
+    
     return NextResponse.json(product);
   } catch (error) {
     console.error('Error getting product:', error);
@@ -78,28 +76,22 @@ export async function PUT(
     }
 
     // Parse JSON strings back to arrays
-    const tags = JSON.parse(formData.get('tags') as string || '[]') as string[];
-    const highlights = JSON.parse(formData.get('highlights') as string || '[]') as string[];
-    const name = formData.get('name') as string;
-    const description = formData.get('description') as string;
-    const price = parseFloat(formData.get('price') as string);
-    const category = formData.get('category') as string;
-    const format = formData.get('format') as string;
-    const storage = formData.get('storage') as string;
+    const tags = JSON.parse(formData.get('tags') as string || '[]');
+    const highlights = JSON.parse(formData.get('highlights') as string || '[]');
 
-    // Update product with proper types
-    const updatedProduct: Product = {
+    // Update product
+    const updatedProduct = {
       ...existingProduct,
-      name,
-      description,
-      price,
-      category,
+      name: formData.get('name'),
+      description: formData.get('description'),
+      price: parseFloat(formData.get('price') as string),
+      category: formData.get('category'),
       tags,
       highlights,
-      format,
-      storage,
+      format: formData.get('format'),
+      storage: formData.get('storage'),
       image: imagePath,
-      slug: name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+      slug: (formData.get('name') as string).toLowerCase().replace(/[^a-z0-9]+/g, '-'),
     };
 
     products[productIndex] = updatedProduct;

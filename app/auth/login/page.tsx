@@ -1,7 +1,8 @@
 'use client';
 
+import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,55 +13,27 @@ export default function Login() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
 
-  useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const response = await fetch('/api/auth/verify', {
-          credentials: 'include'
-        });
-        
-        if (response.ok) {
-          const { user } = await response.json();
-          if (user.role === 'admin') {
-            router.replace('/dashboard');
-          }
-        }
-      } catch (error) {
-        console.error('Auth check error:', error);
-      }
-    };
-
-    checkAuth();
-  }, [router]);
-
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
 
     try {
       const formData = new FormData(e.currentTarget);
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: formData.get('email'),
-          password: formData.get('password'),
-        }),
-        credentials: 'include'
+      const result = await signIn('credentials', {
+        email: formData.get('email') as string,
+        password: formData.get('password') as string,
+        redirect: false,
+        callbackUrl: '/dashboard'
       });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to sign in');
+      if (!result?.ok) {
+        throw new Error('Invalid credentials');
       }
 
       toast.success('Login successful!');
-      router.replace(data.redirectTo || '/dashboard');
+      router.push('/dashboard');
+      router.refresh();
     } catch (error) {
-      console.error('Login error:', error);
       toast.error(error instanceof Error ? error.message : 'Failed to sign in');
     } finally {
       setIsLoading(false);

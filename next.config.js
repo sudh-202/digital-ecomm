@@ -2,7 +2,6 @@
 const nextConfig = {
   images: {
     unoptimized: true,
-    domains: ['localhost'],
     remotePatterns: [
       {
         protocol: 'http',
@@ -14,12 +13,15 @@ const nextConfig = {
       },
     ],
   },
+  experimental: {
+    serverComponentsExternalPackages: ['sharp'],
+  },
   // Enable static file serving from data directory
   async rewrites() {
     return [
       {
-        source: '/data/uploads/:path*',
-        destination: '/api/uploads/:path*',
+        source: '/uploads/:path*',
+        destination: '/data/uploads/:path*',
       },
     ];
   },

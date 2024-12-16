@@ -53,7 +53,7 @@ export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState('products');
 
   useEffect(() => {
-    const fetchProducts = async () => {
+    const verifyAuth = async () => {
       try {
         const response = await fetch('/api/auth/verify', {
           credentials: 'include'
@@ -65,21 +65,18 @@ export default function DashboardPage() {
 
         const data = await response.json();
 
-        if (data.user.role !== 'admin') {
+        if (!data.success || data.user.role !== 'admin') {
           throw new Error('Not authorized');
         }
 
         setUser(data.user);
-        fetchProducts();
+        await fetchProducts();
       } catch (error) {
         console.error('Auth error:', error);
         toast.error('Please login to access the dashboard');
         router.replace('/auth/login');
       } finally {
         setIsLoading(false);
-      } catch (error) {
-        debug('Auth verification failed:', error);
-        router.push('/auth/login');
       }
     };
 
@@ -100,23 +97,18 @@ export default function DashboardPage() {
 
   const handleLogout = async () => {
     try {
-      debug('Attempting logout');
       const response = await fetch('/api/auth/logout', {
         method: 'POST'
       });
 
-      if (response.ok) {
-        debug('Logout successful');
-        toast.success('Logged out successfully');
-        router.push('/auth/login');
-      } else {
+      if (!response.ok) {
         throw new Error('Logout failed');
       }
 
       toast.success('Logged out successfully');
       router.replace('/auth/login');
     } catch (error) {
-      debug('Logout error:', error);
+      console.error('Logout error:', error);
       toast.error('Failed to logout');
     }
   };
@@ -219,11 +211,10 @@ export default function DashboardPage() {
                             {isDeleting === product.id ? (
                               <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
                             ) : (
-                              <>
-                                <Trash2 className="h-4 w-4 mr-1" />
+                              <><Trash2 className="h-4 w-4 mr-1" />
                                 Delete
-                              </>
-                            )}
+                              </>)
+                            }
                           </Button>
                         </AlertDialogTrigger>
                         <AlertDialogContent>

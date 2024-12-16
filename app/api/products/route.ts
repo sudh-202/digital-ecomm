@@ -7,6 +7,7 @@ import {
 import { writeFile } from 'fs/promises';
 import { join } from 'path';
 import { v4 as uuidv4 } from 'uuid';
+import type { NewProduct } from '@/lib/db/schema';
 
 export async function GET() {
   try {
@@ -23,7 +24,7 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    const product = await request.json();
+    const formData = await request.formData();
     
     // Handle image upload
     const imageFile = formData.get('image') as File;
@@ -44,27 +45,42 @@ export async function POST(request: Request) {
       imagePath = `/data/uploads/${filename}`;
     }
 
+    // Parse form data
+    const name = formData.get('name') as string;
+    const description = formData.get('description') as string;
+    const price = parseFloat(formData.get('price') as string);
+    const category = formData.get('category') as string;
+    const format = formData.get('format') as string;
+    const storage = formData.get('storage') as string;
+    const userId = parseInt(formData.get('userId') as string) || 1;
+    
     // Parse JSON strings back to arrays
     const tags = JSON.parse(formData.get('tags') as string || '[]');
     const highlights = JSON.parse(formData.get('highlights') as string || '[]');
 
-    // Create product object
-    const product = {
-      name: formData.get('name'),
-      description: formData.get('description'),
-      price: parseFloat(formData.get('price') as string),
-      category: formData.get('category'),
+    if (!name || isNaN(price)) {
+      return NextResponse.json(
+        { error: 'Name and price are required' },
+        { status: 400 }
+      );
+    }
+
+    const newProduct: NewProduct = {
+      id: Date.now(),
+      name,
+      description: description || '',
+      price,
+      category: category || 'other',
       tags,
       highlights,
-      format: formData.get('format'),
-      storage: formData.get('storage'),
+      format: format || '',
+      storage: storage || '',
       image: imagePath,
-      userId: parseInt(formData.get('userId') as string),
-      id: Date.now(),
+      userId,
       createdAt: new Date().toISOString(),
-      slug: (formData.get('name') as string).toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+      slug: name.toLowerCase().replace(/[^a-z0-9]+/g, '-')
     };
-    
+
     const savedProduct = await addProductToFile(newProduct);
     return NextResponse.json(savedProduct);
   } catch (error) {

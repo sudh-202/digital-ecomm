@@ -1,6 +1,5 @@
 'use client';
 
-import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { toast } from 'sonner';
@@ -19,21 +18,37 @@ export default function Login() {
 
     try {
       const formData = new FormData(e.currentTarget);
-      const result = await signIn('credentials', {
-        email: formData.get('email') as string,
-        password: formData.get('password') as string,
-        redirect: false,
-        callbackUrl: '/dashboard'
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: formData.get('email'),
+          password: formData.get('password'),
+        }),
+        credentials: 'include'
       });
 
-      if (!result?.ok) {
-        throw new Error('Invalid credentials');
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Invalid credentials');
+      }
+
+      // Verify the auth state immediately after login
+      const verifyResponse = await fetch('/api/auth/verify', {
+        credentials: 'include'
+      });
+
+      if (!verifyResponse.ok) {
+        throw new Error('Failed to verify authentication');
       }
 
       toast.success('Login successful!');
       router.push('/dashboard');
-      router.refresh();
     } catch (error) {
+      console.error('Login error:', error);
       toast.error(error instanceof Error ? error.message : 'Failed to sign in');
     } finally {
       setIsLoading(false);
@@ -54,9 +69,9 @@ export default function Login() {
                 id="email"
                 name="email"
                 type="email"
-                placeholder="adminsudhanshu@app.com"
+                placeholder="Enter your email"
                 required
-                className="bg-white/50 dark:bg-gray-800/50"
+                disabled={isLoading}
               />
             </div>
             <div className="space-y-2">
@@ -65,16 +80,17 @@ export default function Login() {
                 id="password"
                 name="password"
                 type="password"
+                placeholder="Enter your password"
                 required
-                className="bg-white/50 dark:bg-gray-800/50"
+                disabled={isLoading}
               />
             </div>
             <Button
               type="submit"
-              className="w-full bg-blue-700 hover:bg-blue-800"
+              className="w-full"
               disabled={isLoading}
             >
-              {isLoading ? 'Logging in...' : 'Login'}
+              {isLoading ? 'Signing in...' : 'Sign in'}
             </Button>
           </form>
         </CardContent>

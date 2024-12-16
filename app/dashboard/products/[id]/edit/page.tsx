@@ -9,7 +9,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from 'sonner';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Image from 'next/image';
-import { use } from 'react';
 
 interface Product {
   id: number;
@@ -34,8 +33,7 @@ const CATEGORIES = [
   { value: 'professional', label: 'Professional' }
 ];
 
-export default function EditProductPage({ params }: { params: Promise<{ id: string }> }) {
-  const resolvedParams = use(params);
+export default function EditProductPage({ params }: { params: { id: string } }) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -46,7 +44,7 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
   useEffect(() => {
     const fetchProduct = async () => {
       try {
-        const response = await fetch(`/api/products/${resolvedParams.id}`);
+        const response = await fetch(`/api/products/${params.id}`);
         if (!response.ok) throw new Error('Failed to fetch product');
         const data = await response.json();
         setProduct(data);
@@ -60,7 +58,7 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
     };
 
     fetchProduct();
-  }, [resolvedParams.id, router]);
+  }, [params.id, router]);
 
   const handleAddTag = () => {
     if (currentTag.trim() && product) {
@@ -104,7 +102,7 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
         formData.append('image', product.image);
       }
 
-      const response = await fetch(`/api/products/${resolvedParams.id}`, {
+      const response = await fetch(`/api/products/${params.id}`, {
         method: 'PUT',
         body: formData
       });

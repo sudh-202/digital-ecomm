@@ -30,22 +30,9 @@ export const products = sqliteTable('products', {
 });
 
 export type User = typeof users.$inferSelect;
-export type Product = {
-  id: number;
-  name: string;
-  description: string;
-  price: number;
-  image: string;
-  category: string;
-  slug: string;
-  tags: string[] | null;
-  highlights: string[] | null;
-  format: string | null;
-  storage: string | null;
-  userId: number;
-  createdAt: string | null;
-};
+export type Product = typeof products.$inferSelect;
 
-export type NewProduct = Omit<Product, 'id' | 'createdAt' | 'slug'> & {
+export type NewProduct = Omit<Product, 'id'> & {
+  id?: number;
   createdAt?: string | null;
 };

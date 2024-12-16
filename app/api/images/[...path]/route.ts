@@ -2,14 +2,21 @@ import { NextRequest, NextResponse } from 'next/server';
 import { join } from 'path';
 import fs from 'fs/promises';
 
-type Params = { path: string[] };
+interface RouteHandlerContext {
+  params: {
+    path: string[]
+  }
+}
+
+export const dynamic = 'force-dynamic';
+export const dynamicParams = true;
 
 export async function GET(
-  request: NextRequest,
-  { params }: { params: Params }
+  _: Request | NextRequest,
+  context: RouteHandlerContext
 ) {
   try {
-    const filePath = join(process.cwd(), 'data', 'uploads', ...params.path);
+    const filePath = join(process.cwd(), 'data', 'uploads', ...context.params.path);
     
     // Read the file
     const file = await fs.readFile(filePath);

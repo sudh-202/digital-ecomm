@@ -3,6 +3,7 @@ import { readProductsFromFile, writeProductsToFile } from '@/lib/db/json-db';
 import { unlink, writeFile } from 'fs/promises';
 import { join } from 'path';
 import { v4 as uuidv4 } from 'uuid';
+import { Product } from '@/lib/db/schema';
 
 export async function GET(
   request: Request,
@@ -77,22 +78,28 @@ export async function PUT(
     }
 
     // Parse JSON strings back to arrays
-    const tags = JSON.parse(formData.get('tags') as string || '[]');
-    const highlights = JSON.parse(formData.get('highlights') as string || '[]');
+    const tags = JSON.parse(formData.get('tags') as string || '[]') as string[];
+    const highlights = JSON.parse(formData.get('highlights') as string || '[]') as string[];
+    const name = formData.get('name') as string;
+    const description = formData.get('description') as string;
+    const price = parseFloat(formData.get('price') as string);
+    const category = formData.get('category') as string;
+    const format = formData.get('format') as string;
+    const storage = formData.get('storage') as string;
 
-    // Update product
-    const updatedProduct = {
+    // Update product with proper types
+    const updatedProduct: Product = {
       ...existingProduct,
-      name: formData.get('name'),
-      description: formData.get('description'),
-      price: parseFloat(formData.get('price') as string),
-      category: formData.get('category'),
+      name,
+      description,
+      price,
+      category,
       tags,
       highlights,
-      format: formData.get('format'),
-      storage: formData.get('storage'),
+      format,
+      storage,
       image: imagePath,
-      slug: (formData.get('name') as string).toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+      slug: name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
     };
 
     products[productIndex] = updatedProduct;

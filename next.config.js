@@ -14,9 +14,6 @@ const nextConfig = {
       },
     ],
   },
-  experimental: {
-    serverComponentsExternalPackages: ['sharp'],
-  },
   // Enable static file serving from data directory
   async rewrites() {
     return [

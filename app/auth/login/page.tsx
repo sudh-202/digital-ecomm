@@ -87,7 +87,7 @@ export default function Login() {
             </div>
             <Button
               type="submit"
-              className="w-full bg-blue-700 text-white"
+              className="w-full bg-blue-700 hover:bg-blue-800 text-white"
               disabled={isLoading}
             >
               {isLoading ? 'Signing in...' : 'Sign in'}

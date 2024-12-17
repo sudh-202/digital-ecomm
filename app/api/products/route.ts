@@ -33,6 +33,10 @@ export async function POST(request: Request) {
 
     // Generate slug from name
     const name = formData.get('name')?.toString();
+    if (!name) {
+      return NextResponse.json({ error: 'Product name is required' }, { status: 400 });
+    }
+
     const slug = name.toLowerCase()
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/(^-|-$)/g, '');
@@ -81,7 +85,7 @@ export async function POST(request: Request) {
     const storage = formData.get('storage')?.toString();
 
     // Validate required fields
-    if (!name || !description || !priceStr || !category || !imagePath) {
+    if (!description || !priceStr || !category || !imagePath) {
       return NextResponse.json(
         { error: 'Missing required fields' },
         { status: 400 }

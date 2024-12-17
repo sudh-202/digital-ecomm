@@ -234,7 +234,7 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
                   <Input
                     name="format"
                     defaultValue={product.format}
-                    placeholder="Enter format (e.g., PDF, Video)"
+                    placeholder={'Enter format (e.g., PDF, Video)'}
                     className="dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
                     required
                   />

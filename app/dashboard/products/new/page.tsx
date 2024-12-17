@@ -167,7 +167,7 @@ export default function NewProductPage() {
                   <label className="text-sm font-medium text-foreground dark:text-white">Format</label>
                   <Input
                     name="format"
-                    placeholder="Enter format (e.g., PDF, Video)"
+                    placeholder={'Enter format (e.g., PDF, Video)'}
                     className="dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
                     required
                   />

@@ -8,6 +8,7 @@ const nextConfig = {
         hostname: '**',
       },
     ],
+    domains: ['localhost'],
   },
   experimental: {
     serverComponentsExternalPackages: ['sharp'],

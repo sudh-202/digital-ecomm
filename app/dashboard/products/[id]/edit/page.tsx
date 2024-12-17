@@ -7,8 +7,10 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { toast } from 'sonner';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, X, Plus, Image as ImageIcon } from 'lucide-react';
+import Image from 'next/image';
 
 interface Product {
   id: number;
@@ -40,6 +42,8 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [product, setProduct] = useState<Product | null>(null);
+  const [newTag, setNewTag] = useState('');
+  const [newHighlight, setNewHighlight] = useState('');
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [mobileImagePreview, setMobileImagePreview] = useState<string | null>(null);
   const [desktopImagePreview, setDesktopImagePreview] = useState<string | null>(null);
@@ -50,14 +54,14 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
         const response = await fetch(`/api/products/${params.id}`);
         if (!response.ok) throw new Error('Failed to fetch product');
         const data = await response.json();
-        setProduct({
-          ...data,
-          price: data.price.toString(),
-          tags: Array.isArray(data.tags) ? data.tags : [],
-          highlights: Array.isArray(data.highlights) ? data.highlights : []
-        });
+        setProduct(data);
+        
+        // Set image previews from data/uploads
+        if (data.image) setImagePreview(`/uploads/${data.image.split('/').pop()}`);
+        if (data.mobileImage) setMobileImagePreview(`/uploads/${data.mobileImage.split('/').pop()}`);
+        if (data.desktopImage) setDesktopImagePreview(`/uploads/${data.desktopImage.split('/').pop()}`);
       } catch (error) {
-        console.error('Error fetching product:', error);
+        console.error('Error:', error);
         toast.error('Failed to fetch product');
       } finally {
         setIsLoading(false);
@@ -67,330 +71,377 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
     fetchProduct();
   }, [params.id]);
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>, type: 'main' | 'mobile' | 'desktop') => {
     const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
+    if (!file) return;
 
-  const handleMobileImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setMobileImagePreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const handleDesktopImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setDesktopImagePreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setIsSubmitting(true);
+    const formData = new FormData();
+    formData.append('file', file);
 
     try {
-      const formData = new FormData(e.currentTarget);
-      
-      // Get all image files
-      const mainImageFile = (e.currentTarget.elements.namedItem('image') as HTMLInputElement).files?.[0];
-      const mobileImageFile = (e.currentTarget.elements.namedItem('mobileImage') as HTMLInputElement).files?.[0];
-      const desktopImageFile = (e.currentTarget.elements.namedItem('desktopImage') as HTMLInputElement).files?.[0];
-
-      // Clear existing image fields
-      formData.delete('image');
-      formData.delete('mobileImage');
-      formData.delete('desktopImage');
-
-      // Add all files to formData if they exist
-      if (mainImageFile) formData.append('image', mainImageFile);
-      if (mobileImageFile) formData.append('mobileImage', mobileImageFile);
-      if (desktopImageFile) formData.append('desktopImage', desktopImageFile);
-
-      // Process tags and highlights
-      const tagsInput = (formData.get('tags')?.toString() || '').trim();
-      const highlightsInput = (formData.get('highlights')?.toString() || '').trim();
-      
-      // Set the raw strings and let the API handle parsing
-      formData.set('tags', tagsInput);
-      formData.set('highlights', highlightsInput);
-
-      // Add other required fields
-      formData.set('name', (formData.get('name')?.toString() || '').trim());
-      formData.set('description', (formData.get('description')?.toString() || '').trim());
-      formData.set('price', formData.get('price')?.toString() || '0');
-      formData.set('category', formData.get('category')?.toString() || '');
-      formData.set('format', (formData.get('format')?.toString() || '').trim());
-      formData.set('storage', (formData.get('storage')?.toString() || '').trim());
-
-      console.log('Submitting form data:', Object.fromEntries(formData.entries()));
-
-      const response = await fetch(`/api/products/${params.id}`, {
-        method: 'PUT',
+      const response = await fetch('/api/upload', {
+        method: 'POST',
         body: formData,
       });
 
-      if (!response.ok) {
-        const error = await response.json();
-        console.error('Server response:', error);
-        throw new Error(error.error || 'Failed to update product');
-      }
+      if (!response.ok) throw new Error('Upload failed');
+      const data = await response.json();
+      const imagePath = `/uploads/${data.filename}`;
 
-      const updatedProduct = await response.json();
-      console.log('Updated product:', updatedProduct);
+      setProduct(prev => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          [type === 'main' ? 'image' : type === 'mobile' ? 'mobileImage' : 'desktopImage']: imagePath
+        };
+      });
 
+      // Update preview
+      if (type === 'main') setImagePreview(imagePath);
+      else if (type === 'mobile') setMobileImagePreview(imagePath);
+      else setDesktopImagePreview(imagePath);
+
+      toast.success('Image uploaded successfully');
+    } catch (error) {
+      console.error('Error:', error);
+      toast.error('Failed to upload image');
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!product) return;
+
+    setIsSubmitting(true);
+    try {
+      const response = await fetch(`/api/products/${params.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(product),
+      });
+
+      if (!response.ok) throw new Error('Update failed');
       toast.success('Product updated successfully');
       router.push('/dashboard');
     } catch (error) {
-      console.error('Error updating product:', error);
-      toast.error(error instanceof Error ? error.message : 'Failed to update product');
+      console.error('Error:', error);
+      toast.error('Failed to update product');
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  const addTag = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && newTag.trim() && product) {
+      e.preventDefault();
+      const tags = [...(product.tags || []), newTag.trim()];
+      setProduct({ ...product, tags });
+      setNewTag('');
+    }
+  };
+
+  const removeTag = (tagToRemove: string) => {
+    if (!product) return;
+    const tags = product.tags.filter(tag => tag !== tagToRemove);
+    setProduct({ ...product, tags });
+  };
+
+  const addHighlight = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && newHighlight.trim() && product) {
+      e.preventDefault();
+      const highlights = [...(product.highlights || []), newHighlight.trim()];
+      setProduct({ ...product, highlights });
+      setNewHighlight('');
+    }
+  };
+
+  const removeHighlight = (highlightToRemove: string) => {
+    if (!product) return;
+    const highlights = product.highlights.filter(highlight => highlight !== highlightToRemove);
+    setProduct({ ...product, highlights });
+  };
+
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background dark:bg-gray-900">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-foreground"></div>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
       </div>
     );
   }
 
   if (!product) {
     return (
-      <div className="min-h-screen p-8 bg-background dark:bg-gray-900 mt-16">
-        <div className="max-w-4xl mx-auto">
-          <Card className="dark:bg-gray-800 border-none">
-            <CardHeader>
-              <CardTitle className="text-foreground dark:text-white">Product not found</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground dark:text-gray-300">The product you're looking for doesn't exist.</p>
-              <Button 
-                onClick={() => router.push('/dashboard')}
-                className="mt-4 bg-blue-700 hover:bg-blue-800 text-white"
-              >
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Dashboard
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
+      <div className="min-h-screen flex items-center justify-center">
+        <p>Product not found</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen p-8 bg-background dark:bg-gray-900 pt-20">
-      <div className="max-w-4xl mx-auto">
-        <Card className="dark:bg-gray-800 border-none">
-          <CardHeader className="space-y-1">
-            <div className="flex items-center space-x-4">
-              <Button 
-                onClick={() => router.push('/dashboard')}
-                variant="ghost"
-                className="hover:bg-accent dark:hover:bg-gray-700"
-              >
-                <ArrowLeft className="h-4 w-4 mr-2 text-foreground dark:text-white" />
-              </Button>
-              <CardTitle className="text-2xl font-bold text-foreground dark:text-white">Edit Product</CardTitle>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
+    <div className="min-h-screen p-8 bg-background dark:bg-gray-900">
+      <div className="max-w-5xl mx-auto space-y-6">
+        <div className="flex items-center justify-between">
+          <Button
+            variant="ghost"
+            onClick={() => router.back()}
+            className="gap-2"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back
+          </Button>
+          <Button
+            onClick={handleSubmit}
+            disabled={isSubmitting}
+            className="bg-blue-600 hover:bg-blue-700 text-white"
+          >
+            {isSubmitting ? 'Saving...' : 'Save Changes'}
+          </Button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-8">
+          {/* Basic Info */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Basic Information</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
               <div className="space-y-2">
-                <label className="text-sm font-medium text-foreground dark:text-white">Name</label>
+                <label className="text-sm font-medium">Name</label>
                 <Input
-                  name="name"
-                  defaultValue={product.name}
-                  className="dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
-                  required
+                  value={product.name}
+                  onChange={(e) => setProduct({ ...product, name: e.target.value })}
+                  placeholder="Product name"
                 />
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium text-foreground dark:text-white">Description</label>
+                <label className="text-sm font-medium">Description</label>
                 <Textarea
-                  name="description"
-                  defaultValue={product.description}
-                  className="dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
-                  required
+                  value={product.description}
+                  onChange={(e) => setProduct({ ...product, description: e.target.value })}
+                  placeholder="Product description"
+                  className="min-h-[100px]"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-foreground dark:text-white">Price</label>
+                  <label className="text-sm font-medium">Price</label>
                   <Input
-                    name="price"
                     type="number"
-                    step="0.01"
-                    defaultValue={product.price}
-                    placeholder="Enter price"
-                    className="dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
-                    required
+                    value={product.price}
+                    onChange={(e) => setProduct({ ...product, price: e.target.value })}
+                    placeholder="Price"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-foreground dark:text-white">Category</label>
-                  <Select name="category" defaultValue={product.category}>
-                    <SelectTrigger className="dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                  <label className="text-sm font-medium">Category</label>
+                  <Select
+                    value={product.category}
+                    onValueChange={(value) => setProduct({ ...product, category: value })}
+                  >
+                    <SelectTrigger>
                       <SelectValue placeholder="Select category" />
                     </SelectTrigger>
-                    <SelectContent className="dark:bg-gray-800">
+                    <SelectContent>
                       {CATEGORIES.map((category) => (
-                        <SelectItem 
-                          key={category.value} 
-                          value={category.value}
-                          className="dark:text-white dark:focus:bg-gray-700"
-                        >
+                        <SelectItem key={category.value} value={category.value}>
                           {category.label}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </div>
-
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-foreground dark:text-white">Format</label>
-                  <Input
-                    name="format"
-                    defaultValue={product.format}
-                    placeholder={'Enter format (e.g., PDF, Video)'}
-                    className="dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
-                    required
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-foreground dark:text-white">Storage</label>
-                  <Input
-                    name="storage"
-                    defaultValue={product.storage}
-                    placeholder="Enter storage details"
-                    className="dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
-                    required
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-foreground dark:text-white">Tags (comma-separated)</label>
-                  <Input
-                    name="tags"
-                    defaultValue={product.tags.join(', ')}
-                    placeholder="tag1, tag2, tag3"
-                    className="dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-foreground dark:text-white">Highlights (comma-separated)</label>
-                  <Input
-                    name="highlights"
-                    defaultValue={product.highlights.join(', ')}
-                    placeholder="highlight1, highlight2, highlight3"
-                    className="dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
-                  />
-                </div>
               </div>
+            </CardContent>
+          </Card>
 
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-foreground dark:text-white">Product Image</label>
-                <div className="flex items-center space-x-4">
-                  {(imagePreview || product.image) && (
-                    <img 
-                      src={imagePreview || product.image} 
-                      alt={product.name || 'Product preview'} 
-                      className="w-24 h-24 object-cover rounded-lg border dark:border-gray-700"
-                    />
-                  )}
-                  <Input
-                    type="file"
-                    name="image"
-                    accept="image/*"
-                    onChange={handleImageChange}
-                    className="dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:file:bg-gray-600 dark:file:text-white dark:file:border-gray-500"
-                  />
-                </div>
+          {/* Tags */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Tags</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex flex-wrap gap-2 mb-4">
+                {product.tags?.map((tag) => (
+                  <Badge
+                    key={tag}
+                    variant="secondary"
+                    className="px-3 py-1 bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-100"
+                  >
+                    {tag}
+                    <button
+                      onClick={() => removeTag(tag)}
+                      className="ml-2 hover:text-red-500"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </Badge>
+                ))}
               </div>
-
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-foreground dark:text-white">Mobile Product Image</label>
-                <div className="flex items-center space-x-4">
-                  {(mobileImagePreview || product.mobileImage) && (
-                    <img 
-                      src={mobileImagePreview || product.mobileImage} 
-                      alt={product.name || 'Mobile product preview'} 
-                      className="w-24 h-24 object-cover rounded-lg border dark:border-gray-700"
-                    />
-                  )}
-                  <Input
-                    type="file"
-                    name="mobileImage"
-                    accept="image/*"
-                    onChange={handleMobileImageChange}
-                    className="dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:file:bg-gray-600 dark:file:text-white dark:file:border-gray-500"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-foreground dark:text-white">Desktop Product Image</label>
-                <div className="flex items-center space-x-4">
-                  {(desktopImagePreview || product.desktopImage) && (
-                    <img 
-                      src={desktopImagePreview || product.desktopImage} 
-                      alt={product.name || 'Desktop product preview'} 
-                      className="w-24 h-24 object-cover rounded-lg border dark:border-gray-700"
-                    />
-                  )}
-                  <Input
-                    type="file"
-                    name="desktopImage"
-                    accept="image/*"
-                    onChange={handleDesktopImageChange}
-                    className="dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:file:bg-gray-600 dark:file:text-white dark:file:border-gray-500"
-                  />
-                </div>
-              </div>
-
-              <div className="flex justify-end space-x-4 mt-6">
+              <div className="flex gap-2">
+                <Input
+                  value={newTag}
+                  onChange={(e) => setNewTag(e.target.value)}
+                  onKeyDown={addTag}
+                  placeholder="Add a tag and press Enter"
+                  className="flex-1"
+                />
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => router.push('/dashboard')}
-                  className="dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600 dark:border-gray-600"
+                  onClick={() => {
+                    if (newTag.trim()) {
+                      const tags = [...(product.tags || []), newTag.trim()];
+                      setProduct({ ...product, tags });
+                      setNewTag('');
+                    }
+                  }}
                 >
-                  Cancel
-                </Button>
-                <Button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="bg-blue-700 hover:bg-blue-800 text-white"
-                >
-                  {isSubmitting ? 'Saving...' : 'Save Changes'}
+                  <Plus className="h-4 w-4" />
                 </Button>
               </div>
-            </form>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+
+          {/* Highlights */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Highlights</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                {product.highlights?.map((highlight, index) => (
+                  <div
+                    key={index}
+                    className="flex items-center gap-2 p-3 rounded-lg bg-gray-50 dark:bg-gray-800"
+                  >
+                    <span className="flex-1">{highlight}</span>
+                    <button
+                      type="button"
+                      onClick={() => removeHighlight(highlight)}
+                      className="text-gray-400 hover:text-red-500"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+              <div className="flex gap-2">
+                <Input
+                  value={newHighlight}
+                  onChange={(e) => setNewHighlight(e.target.value)}
+                  onKeyDown={addHighlight}
+                  placeholder="Add a highlight and press Enter"
+                  className="flex-1"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    if (newHighlight.trim()) {
+                      const highlights = [...(product.highlights || []), newHighlight.trim()];
+                      setProduct({ ...product, highlights });
+                      setNewHighlight('');
+                    }
+                  }}
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Images */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Images</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Main Image */}
+              <div className="space-y-4">
+                <label className="text-sm font-medium">Main Image</label>
+                <div className="flex items-center gap-4">
+                  <div className="relative w-32 h-32 border rounded-lg overflow-hidden">
+                    {imagePreview ? (
+                      <Image
+                        src={imagePreview}
+                        alt="Main preview"
+                        fill
+                        className="object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center bg-gray-100 dark:bg-gray-800">
+                        <ImageIcon className="h-8 w-8 text-gray-400" />
+                      </div>
+                    )}
+                  </div>
+                  <Input
+                    type="file"
+                    onChange={(e) => handleImageChange(e, 'main')}
+                    accept="image/*"
+                    className="flex-1"
+                  />
+                </div>
+              </div>
+
+              {/* Mobile Image */}
+              <div className="space-y-4">
+                <label className="text-sm font-medium">Mobile Image</label>
+                <div className="flex items-center gap-4">
+                  <div className="relative w-32 h-32 border rounded-lg overflow-hidden">
+                    {mobileImagePreview ? (
+                      <Image
+                        src={mobileImagePreview}
+                        alt="Mobile preview"
+                        fill
+                        className="object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center bg-gray-100 dark:bg-gray-800">
+                        <ImageIcon className="h-8 w-8 text-gray-400" />
+                      </div>
+                    )}
+                  </div>
+                  <Input
+                    type="file"
+                    onChange={(e) => handleImageChange(e, 'mobile')}
+                    accept="image/*"
+                    className="flex-1"
+                  />
+                </div>
+              </div>
+
+              {/* Desktop Image */}
+              <div className="space-y-4">
+                <label className="text-sm font-medium">Desktop Image</label>
+                <div className="flex items-center gap-4">
+                  <div className="relative w-32 h-32 border rounded-lg overflow-hidden">
+                    {desktopImagePreview ? (
+                      <Image
+                        src={desktopImagePreview}
+                        alt="Desktop preview"
+                        fill
+                        className="object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center bg-gray-100 dark:bg-gray-800">
+                        <ImageIcon className="h-8 w-8 text-gray-400" />
+                      </div>
+                    )}
+                  </div>
+                  <Input
+                    type="file"
+                    onChange={(e) => handleImageChange(e, 'desktop')}
+                    accept="image/*"
+                    className="flex-1"
+                  />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </form>
       </div>
     </div>
   );

@@ -37,10 +37,8 @@ export default function Navbar() {
   return (
     <header
       className={`fixed top-0 w-full z-50 transition-all duration-300 ${
-        isDashboard
-          ? "bg-background dark:bg-gray-900 border-b dark:border-gray-800"
-          : hasScrolled
-          ? "bg-white dark:bg-gray-900 shadow-sm border-b dark:border-gray-800"
+        hasScrolled
+          ? "bg-white/95 backdrop-blur-sm dark:bg-gray-900/95 shadow-sm border-b dark:border-gray-800"
           : "bg-transparent"
       }`}
     >

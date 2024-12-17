@@ -12,6 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Image from 'next/image';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { PreviewDialog } from "@/components/preview-dialog";
 
 interface Product {
   id: number;
@@ -47,6 +48,7 @@ export default function DashboardPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [productToDelete, setProductToDelete] = useState<Product | null>(null);
   const [activeTab, setActiveTab] = useState('products');
+  const [previewSlug, setPreviewSlug] = useState<string | null>(null);
 
   useEffect(() => {
     fetchProducts();
@@ -99,109 +101,116 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen p-8 bg-background dark:bg-gray-900 mt-16">
-      <div className="max-w-7xl mx-auto">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold text-foreground dark:text-white">Dashboard</h1>
-          <Button
-            onClick={() => router.push('/dashboard/products/new')}
-            className="bg-blue-700 hover:bg-blue-800 text-white"
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Add Product
-          </Button>
-        </div>
+    <>
+      <div className="min-h-screen p-8 bg-background dark:bg-gray-900 mt-16">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex justify-between items-center mb-8">
+            <h1 className="text-3xl font-bold text-foreground dark:text-white">Dashboard</h1>
+            <Button
+              onClick={() => router.push('/dashboard/products/new')}
+              className="bg-blue-700 hover:bg-blue-800 text-white"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Add Product
+            </Button>
+          </div>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-          <TabsList className="bg-muted dark:bg-gray-800">
-            <TabsTrigger value="products" className="data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700">Products</TabsTrigger>
-          </TabsList>
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+            <TabsList className="bg-muted dark:bg-gray-800">
+              <TabsTrigger value="products" className="data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700">Products</TabsTrigger>
+            </TabsList>
 
-          <TabsContent value="products" className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {products.map((product) => (
-                <Card key={product.id} className="bg-card dark:bg-gray-800 border dark:border-gray-700">
-                  <CardHeader className="space-y-1">
-                    <CardTitle className="text-xl flex justify-between items-start text-foreground dark:text-white">
-                      <span className="truncate">{product.name}</span>
-                      <div className="flex space-x-2 ml-4">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => router.push(`/products/preview/${product.slug}`)}
-                          className="hover:bg-accent dark:hover:bg-gray-700"
-                        >
-                          <Eye className="h-4 w-4 text-foreground dark:text-white" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => router.push(`/dashboard/products/${product.id}/edit`)}
-                          className="hover:bg-accent dark:hover:bg-gray-700"
-                        >
-                          <Pencil className="h-4 w-4 text-foreground dark:text-white" />
-                        </Button>
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="text-red-500 hover:text-red-600 hover:bg-accent dark:hover:bg-gray-700"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent className="bg-background dark:bg-gray-800">
-                            <AlertDialogHeader>
-                              <AlertDialogTitle className="text-foreground dark:text-white">Are you sure?</AlertDialogTitle>
-                              <AlertDialogDescription className="text-muted-foreground dark:text-gray-400">
-                                This action cannot be undone. This will permanently delete the product.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel className="bg-background dark:bg-gray-700 dark:text-white">Cancel</AlertDialogCancel>
-                              <AlertDialogAction
-                                onClick={() => handleDeleteProduct(product.id)}
-                                className="bg-red-500 hover:bg-red-600 text-white"
+            <TabsContent value="products" className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {products.map((product) => (
+                  <Card key={product.id} className="bg-card dark:bg-gray-800 border dark:border-gray-700">
+                    <CardHeader className="space-y-1">
+                      <CardTitle className="text-xl flex justify-between items-start text-foreground dark:text-white">
+                        <span className="truncate">{product.name}</span>
+                        <div className="flex space-x-2 ml-4">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => setPreviewSlug(product.slug)}
+                            className="hover:bg-accent dark:hover:bg-gray-700"
+                          >
+                            <Eye className="h-4 w-4 text-foreground dark:text-white" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => router.push(`/dashboard/products/${product.id}/edit`)}
+                            className="hover:bg-accent dark:hover:bg-gray-700"
+                          >
+                            <Pencil className="h-4 w-4 text-foreground dark:text-white" />
+                          </Button>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="text-red-500 hover:text-red-600 hover:bg-accent dark:hover:bg-gray-700"
                               >
-                                {isDeleting === product.id ? 'Deleting...' : 'Delete'}
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                      </div>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="relative h-48 mb-4">
-                      {product.image ? (
-                        <Image
-                          src={`/api/images/${product.image.split('/').pop()}`}
-                          alt={product.name}
-                          fill
-                          className="object-cover rounded-md"
-                        />
-                      ) : (
-                        <div className="w-full h-full bg-accent dark:bg-gray-700 rounded-md flex items-center justify-center">
-                          <span className="text-muted-foreground dark:text-gray-400">No image</span>
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent className="bg-background dark:bg-gray-800">
+                              <AlertDialogHeader>
+                                <AlertDialogTitle className="text-foreground dark:text-white">Are you sure?</AlertDialogTitle>
+                                <AlertDialogDescription className="text-muted-foreground dark:text-gray-400">
+                                  This action cannot be undone. This will permanently delete the product.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel className="bg-background dark:bg-gray-700 dark:text-white">Cancel</AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={() => handleDeleteProduct(product.id)}
+                                  className="bg-red-500 hover:bg-red-600 text-white"
+                                >
+                                  {isDeleting === product.id ? 'Deleting...' : 'Delete'}
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
                         </div>
-                      )}
-                    </div>
-                    <div className="space-y-2">
-                      <p className="text-sm text-muted-foreground dark:text-gray-300">
-                        Price: ${product.price}
-                      </p>
-                      <p className="text-sm text-muted-foreground dark:text-gray-300">
-                        Category: {product.category}
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </TabsContent>
-        </Tabs>
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="relative h-48 mb-4">
+                        {product.image ? (
+                          <Image
+                            src={`/api/images/${product.image.split('/').pop()}`}
+                            alt={product.name}
+                            fill
+                            className="object-cover rounded-md"
+                          />
+                        ) : (
+                          <div className="w-full h-full bg-accent dark:bg-gray-700 rounded-md flex items-center justify-center">
+                            <span className="text-muted-foreground dark:text-gray-400">No image</span>
+                          </div>
+                        )}
+                      </div>
+                      <div className="space-y-2">
+                        <p className="text-sm text-muted-foreground dark:text-gray-300">
+                          Price: ${product.price}
+                        </p>
+                        <p className="text-sm text-muted-foreground dark:text-gray-300">
+                          Category: {product.category}
+                        </p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </TabsContent>
+          </Tabs>
+        </div>
       </div>
-    </div>
+      <PreviewDialog 
+        slug={previewSlug || ''} 
+        open={!!previewSlug} 
+        onOpenChange={(open) => !open && setPreviewSlug(null)} 
+      />
+    </>
   );
 }

@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useCart } from "@/context/cart-context";
 import Image from "next/image";
 import { useRouter } from 'next/navigation';
+import { X } from 'lucide-react';
 
 export function CartSidebar() {
   const { isOpen, setIsOpen, items, removeFromCart, updateQuantity } = useCart();
@@ -20,7 +21,18 @@ export function CartSidebar() {
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
       <SheetContent className="w-[400px] sm:w-[540px] dark:bg-black bg-white">
         <SheetHeader>
-          <SheetTitle className="dark:text-white text-black">Shopping Cart ({items.length} items)</SheetTitle>
+          <div className="flex items-center justify-between">
+            <SheetTitle className="dark:text-white text-black">Shopping Cart ({items.length} items)</SheetTitle>
+            <Button 
+              variant="ghost" 
+              size="icon"
+              onClick={() => setIsOpen(false)}
+              className="dark:text-white text-black"
+            >
+             
+            </Button>
+            <X className="h-4 w-4 dark:text-white text-black" />
+          </div>
         </SheetHeader>
         <div className="mt-8 space-y-6 dark:text-white text-black ">
           {items.map((item) => (
@@ -30,10 +42,10 @@ export function CartSidebar() {
                   src={item.image}
                   alt={item.name}
                   fill
-                  className="object-cover rounded"
+                  className="object-cover rounded "
                 />
               </div>
-              <div className="flex-1">
+              <div className="flex-1 space-y-4">
                 <h3 className="font-medium">{item.name}</h3>
                 <p className="text-sm dark:text-white text-black">${item.price}</p>
                 <div className="flex items-center space-x-2 mt-1">

@@ -6,18 +6,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { LogOut, Pencil, Trash2, Plus } from "lucide-react";
+import { Pencil, Trash2, Plus } from "lucide-react";
 import { toast } from 'sonner';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Image from 'next/image';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-
-interface User {
-  id: number;
-  email: string;
-  role: string;
-}
 
 interface Product {
   id: number;
@@ -47,41 +41,13 @@ export default function DashboardPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDeleting, setIsDeleting] = useState<number | null>(null);
-  const [user, setUser] = useState<User | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
   const [productToDelete, setProductToDelete] = useState<Product | null>(null);
   const [activeTab, setActiveTab] = useState('products');
 
   useEffect(() => {
-    const verifyAuth = async () => {
-      try {
-        const response = await fetch('/api/auth/verify', {
-          credentials: 'include'
-        });
-        
-        if (!response.ok) {
-          throw new Error('Not authenticated');
-        }
-
-        const data = await response.json();
-
-        if (!data.success || data.user.role !== 'admin') {
-          throw new Error('Not authorized');
-        }
-
-        setUser(data.user);
-        await fetchProducts();
-      } catch (error) {
-        console.error('Auth error:', error);
-        toast.error('Please login to access the dashboard');
-        router.replace('/auth/login');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    verifyAuth();
-  }, [router]);
+    fetchProducts();
+  }, []);
 
   const fetchProducts = async () => {
     try {
@@ -92,42 +58,28 @@ export default function DashboardPage() {
     } catch (error) {
       console.error('Error fetching products:', error);
       toast.error('Failed to fetch products');
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const handleLogout = async () => {
+  const handleDeleteProduct = async (productId: number) => {
+    if (!productId) return;
+    
+    setIsDeleting(productId);
     try {
-      const response = await fetch('/api/auth/logout', {
-        method: 'POST'
+      const response = await fetch(`/api/products/${productId}`, {
+        method: 'DELETE',
       });
 
       if (!response.ok) {
-        throw new Error('Logout failed');
+        throw new Error('Failed to delete product');
       }
 
-      toast.success('Logged out successfully');
-      router.replace('/auth/login');
-    } catch (error) {
-      console.error('Logout error:', error);
-      toast.error('Failed to logout');
-    }
-  };
-
-  const handleDeleteConfirm = async () => {
-    if (!productToDelete) return;
-
-    try {
-      setIsDeleting(productToDelete.id);
-      const response = await fetch(`/api/products/${productToDelete.id}`, {
-        method: 'DELETE'
-      });
-
-      if (!response.ok) throw new Error('Failed to delete product');
-
+      setProducts(products.filter(p => p.id !== productId));
       toast.success('Product deleted successfully');
-      fetchProducts();
     } catch (error) {
-      console.error('Error deleting product:', error);
+      console.error('Delete error:', error);
       toast.error('Failed to delete product');
     } finally {
       setIsDeleting(null);
@@ -137,114 +89,107 @@ export default function DashboardPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+      <div className="min-h-screen flex items-center justify-center bg-background dark:bg-gray-900">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-foreground"></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen p-8 bg-background text-foreground pt-20">
-      <div className="max-w-6xl mx-auto">
+    <div className="min-h-screen p-8 bg-background dark:bg-gray-900 mt-16">
+      <div className="max-w-7xl mx-auto">
         <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold">Dashboard</h1>
+          <h1 className="text-3xl font-bold text-foreground dark:text-white">Dashboard</h1>
           <Button
-            variant="destructive"
-            onClick={handleLogout}
-            className="flex items-center gap-2"
+            onClick={() => router.push('/dashboard/products/new')}
+            className="bg-blue-700 hover:bg-blue-800 text-white"
           >
-            <LogOut className="h-4 w-4 " />
-            Logout
+            <Plus className="h-4 w-4 mr-2" />
+            Add Product
           </Button>
         </div>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-2xl">Products</CardTitle>
-            <Button
-              onClick={() => router.push('/dashboard/products/create')}
-              className="dark:bg-white bg-blue-700 dark:text-black  dark:hover:bg-gray-300 hover:bg-blue-600"
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Add Product
-            </Button>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+          <TabsList className="bg-muted dark:bg-gray-800">
+            <TabsTrigger value="products" className="data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700">Products</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="products" className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {products.map((product) => (
-                <Card key={product.id} className="border">
-                  <CardContent className="p-4">
-                    {product.image && (
-                      <div className="relative w-full h-48 mb-4">
+                <Card key={product.id} className="bg-card dark:bg-gray-800 border dark:border-gray-700">
+                  <CardHeader className="space-y-1">
+                    <CardTitle className="text-xl flex justify-between items-start text-foreground dark:text-white">
+                      <span className="truncate">{product.name}</span>
+                      <div className="flex space-x-2 ml-4">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => router.push(`/dashboard/products/${product.id}/edit`)}
+                          className="hover:bg-accent dark:hover:bg-gray-700"
+                        >
+                          <Pencil className="h-4 w-4 text-foreground dark:text-white" />
+                        </Button>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="text-red-500 hover:text-red-600 hover:bg-accent dark:hover:bg-gray-700"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent className="bg-background dark:bg-gray-800">
+                            <AlertDialogHeader>
+                              <AlertDialogTitle className="text-foreground dark:text-white">Are you sure?</AlertDialogTitle>
+                              <AlertDialogDescription className="text-muted-foreground dark:text-gray-400">
+                                This action cannot be undone. This will permanently delete the product.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel className="bg-background dark:bg-gray-700 dark:text-white">Cancel</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => handleDeleteProduct(product.id)}
+                                className="bg-red-500 hover:bg-red-600 text-white"
+                              >
+                                {isDeleting === product.id ? 'Deleting...' : 'Delete'}
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </div>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="relative h-48 mb-4">
+                      {product.image ? (
                         <Image
-                          src={`data/uploads/${product.image}`}
+                          src={`/api/images/${product.image.split('/').pop()}`}
                           alt={product.name}
                           fill
                           className="object-cover rounded-md"
-                          priority
                         />
-                      </div>
-                    )}
-                    <h3 className="text-lg font-semibold mb-2">{product.name}</h3>
-                    <div className="flex justify-between items-center mb-4">
-                      <span className="text-blue-700 font-medium">${product.price}</span>
-                      <span className="text-sm text-muted-foreground">{product.category}</span>
+                      ) : (
+                        <div className="w-full h-full bg-accent dark:bg-gray-700 rounded-md flex items-center justify-center">
+                          <span className="text-muted-foreground dark:text-gray-400">No image</span>
+                        </div>
+                      )}
                     </div>
-                    <div className="flex gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="flex-1"
-                        onClick={() => router.push(`/dashboard/products/${product.id}/edit`)}
-                      >
-                        <Pencil className="h-4 w-4 mr-1" />
-                        Edit
-                      </Button>
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button
-                            variant="destructive"
-                            size="sm"
-                            className="flex-1"
-                            disabled={isDeleting === product.id}
-                          >
-                            {isDeleting === product.id ? (
-                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                            ) : (
-                              <><Trash2 className="h-4 w-4 mr-1" />
-                                Delete
-                              </>)
-                            }
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>Delete {product.name}?</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              This action cannot be undone. This will permanently delete the product
-                              and remove all associated data from the server.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                            <AlertDialogAction
-                              onClick={() => {
-                                setProductToDelete(product);
-                                handleDeleteConfirm();
-                              }}
-                            >
-                              Delete
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
+                    <div className="space-y-2">
+                      <p className="text-sm text-muted-foreground dark:text-gray-300">
+                        Price: ${product.price}
+                      </p>
+                      <p className="text-sm text-muted-foreground dark:text-gray-300">
+                        Category: {product.category}
+                      </p>
                     </div>
                   </CardContent>
                 </Card>
               ))}
             </div>
-          </CardContent>
-        </Card>
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );

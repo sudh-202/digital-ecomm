@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
 import Link from "next/link";
 import { ThemeToggle } from "./theme-toggle";
-import { ShoppingCart, Menu, UserCog, LogIn } from "lucide-react";
+import { ShoppingCart, Menu } from "lucide-react";
 import { useCart } from "@/context/cart-context";
 import { CartSidebar } from "./CartSidebar";
 import { Button } from "./ui/button";
@@ -15,15 +15,14 @@ import {
   SheetTrigger,
 } from "./ui/sheet";
 import { useState, useEffect } from "react";
-import { useAuth } from "@/hooks/useAuth";
-import { clsx } from "clsx";
+import { usePathname } from "next/navigation";
 
 export default function Navbar() {
   const { items, setIsOpen } = useCart();
-  const { user } = useAuth();
-  const cartCount = items.reduce((total, item) => total + item.quantity, 0);
-  const [, setIsMobileMenuOpen] = useState(false);
   const [hasScrolled, setHasScrolled] = useState(false);
+  const cartCount = items.length;
+  const pathname = usePathname();
+  const isDashboard = pathname === '/dashboard';
 
   useEffect(() => {
     const handleScroll = () => {
@@ -37,29 +36,39 @@ export default function Navbar() {
 
   return (
     <header
-      className={`fixed top-0 w-full z-50 transition-colors duration-300 ${
-        hasScrolled
-          ? "bg-[#F9FAFB] dark:bg-[#111827] shadow-sm"
+      className={`fixed top-0 w-full z-50 transition-all duration-300 ${
+        isDashboard
+          ? "bg-background dark:bg-gray-900 border-b dark:border-gray-800"
+          : hasScrolled
+          ? "bg-white dark:bg-gray-900 shadow-sm border-b dark:border-gray-800"
           : "bg-transparent"
       }`}
     >
-      <div className="max-w-7xl mx-auto px-2 sm:px-4">
-        <div className="flex items-center justify-between h-14 sm:h-16">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6">
+        <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link
-            href="/"
-            className="text-xl sm:text-2xl font-bold dark:text-white"
+          <Link 
+            href="/" 
+            className={`text-2xl font-bold transition-colors duration-300 ${
+              isDashboard || hasScrolled
+                ? "text-foreground dark:text-white"
+                : "text-foreground dark:text-white"
+            }`}
           >
-            <span className="text-blue-700">Digi </span>STORE
+            <span className="text-blue-700">Digi</span>STORE
           </Link>
 
-          {/* Desktop Navigation Links */}
-          <nav className="hidden md:flex items-center justify-center flex-1 px-4 lg:px-8">
+          {/* Desktop Navigation */}
+          <nav className="hidden md:flex items-center space-x-4">
             {navLinks.map((link) => (
               <Link
                 key={link.route}
                 href={link.route}
-                className="text-md font-medium text-muted-foreground hover:text-foreground transition-colors px-4 dark:text-white"
+                className={`text-sm font-medium transition-colors duration-300 ${
+                  isDashboard || hasScrolled
+                    ? "text-muted-foreground hover:text-foreground dark:text-gray-300 dark:hover:text-white"
+                    : "text-foreground/90 hover:text-foreground dark:text-gray-200 dark:hover:text-white"
+                }`}
               >
                 {link.label}
               </Link>
@@ -67,77 +76,71 @@ export default function Navbar() {
           </nav>
 
           {/* Right Side Actions */}
-          <div className="flex items-center space-x-2 sm:space-x-4 ">
+          <div className="flex items-center space-x-4">
             <ThemeToggle />
-
-            {user?.role === "admin" ? (
-              <Link href="/dashboard">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="w-9 h-9 sm:w-10 sm:h-10"
-                >
-                  <UserCog className="h-5 w-5 sm:h-6 sm:w-6 flex-shrink-0 dark:text-white text-black  group-hover:text-gray-500" />
-                </Button>
-              </Link>
-            ) : (
-              <Link href="/auth/login">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="w-9 h-9 sm:w-10 sm:h-10"
-                >
-                  <LogIn className="h-5 w-5 sm:h-6 sm:w-6 flex-shrink-0 dark:text-white text-black group-hover:text-gray-500" />
-                </Button>
-              </Link>
-            )}
 
             <Button
               variant="ghost"
               size="icon"
-              className="relative w-9 h-9 sm:w-10 sm:h-10"
+              className={`relative transition-colors duration-300 ${
+                isDashboard || hasScrolled
+                  ? "hover:bg-accent dark:hover:bg-gray-800"
+                  : "hover:bg-white/10 dark:hover:bg-gray-800/50"
+              }`}
               onClick={() => setIsOpen(true)}
             >
-              <ShoppingCart className="h-5 w-5 sm:h-6 sm:w-6 flex-shrink-0 dark:text-white text-black group-hover:text-gray-500" />
+              <ShoppingCart className={`h-5 w-5 transition-colors duration-300 ${
+                isDashboard || hasScrolled
+                  ? "text-foreground dark:text-white"
+                  : "text-foreground dark:text-white"
+              }`} />
               {cartCount > 0 && (
-                <span className="absolute -top-2 -right-2 h-4 w-4 sm:h-5 sm:w-5 rounded-full bg-blue-700 flex items-center justify-center text-[10px] sm:text-xs text-white">
+                <span className="absolute -top-2 -right-2 h-5 w-5 rounded-full bg-blue-700 flex items-center justify-center text-xs text-white">
                   {cartCount}
                 </span>
               )}
             </Button>
 
-            {/* Mobile Menu Button */}
+            {/* Mobile Menu */}
             <Sheet>
               <SheetTrigger asChild className="md:hidden">
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="w-9 h-9 sm:w-10 sm:h-10"
+                  className={`transition-colors duration-300 ${
+                    isDashboard || hasScrolled
+                      ? "hover:bg-accent dark:hover:bg-gray-800"
+                      : "hover:bg-white/10 dark:hover:bg-gray-800/50"
+                  }`}
                 >
-                  <Menu className="h-5 w-5 sm:h-6 sm:w-6" />
+                  <Menu className={`h-5 w-5 transition-colors duration-300 ${
+                    isDashboard || hasScrolled
+                      ? "text-foreground dark:text-white"
+                      : "text-foreground dark:text-white"
+                  }`} />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="right" className="w-[280px] sm:w-[300px]">
+              <SheetContent className="w-[280px] bg-background dark:bg-gray-900">
                 <SheetHeader>
-                  <SheetTitle className="text-left">Menu</SheetTitle>
+                  <SheetTitle className="text-foreground dark:text-white">Menu</SheetTitle>
                 </SheetHeader>
-                <div className="flex flex-col gap-4 mt-8">
+                <nav className="flex flex-col mt-4">
                   {navLinks.map((link) => (
                     <Link
                       key={link.route}
                       href={link.route}
-                      className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors px-2 py-1.5 -mx-2 rounded-md hover:bg-accent"
-                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="text-sm font-medium text-muted-foreground hover:text-foreground dark:text-gray-300 dark:hover:text-white py-2 transition-colors"
                     >
                       {link.label}
                     </Link>
                   ))}
-                </div>
+                </nav>
               </SheetContent>
             </Sheet>
           </div>
         </div>
       </div>
+
       <CartSidebar />
     </header>
   );

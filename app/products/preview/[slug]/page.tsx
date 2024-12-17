@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Smartphone, Monitor } from "lucide-react";
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import type { ProductWithUser } from '@/lib/services/product.service';
+import type { ProductWithUser } from '@/lib/db/schema';
 
 export default function ProductPreview({ params }: { params: { slug: string } }) {
   const [product, setProduct] = useState<ProductWithUser | null>(null);
@@ -90,7 +90,7 @@ export default function ProductPreview({ params }: { params: { slug: string } })
           <TabsContent value="desktop">
             <Card>
               <CardContent className="p-6">
-                <div className="aspect-video relative rounded-lg overflow-hidden">
+                <div className="aspect-video relative rounded-lg overflow-hidden h-[600px]">
                   <Image
                     src={product.desktopImage || product.image}
                     alt={`${product.name} - Desktop View`}
@@ -105,42 +105,22 @@ export default function ProductPreview({ params }: { params: { slug: string } })
 
           <TabsContent value="mobile">
             <Card>
-              <CardContent className="p-6 flex justify-center">
-                <div className="w-[375px] aspect-[9/16] relative rounded-lg overflow-hidden">
-                  <Image
-                    src={product.mobileImage || product.image}
-                    alt={`${product.name} - Mobile View`}
-                    fill
-                    className="object-cover"
-                    priority
-                  />
+              <CardContent className="p-6">
+                <div className="max-w-[375px] mx-auto">
+                  <div className="aspect-[9/16] relative rounded-lg overflow-hidden">
+                    <Image
+                      src={product.mobileImage || product.image}
+                      alt={`${product.name} - Mobile View`}
+                      fill
+                      className="object-cover"
+                      priority
+                    />
+                  </div>
                 </div>
               </CardContent>
             </Card>
           </TabsContent>
         </Tabs>
-
-        <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-8">
-          <Card>
-            <CardContent className="p-6">
-              <h2 className="text-xl font-semibold mb-4">Description</h2>
-              <p className="text-gray-600 dark:text-gray-300">{product.description}</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-6">
-              <h2 className="text-xl font-semibold mb-4">Highlights</h2>
-              <ul className="list-disc list-inside space-y-2">
-                {product.highlights?.map((highlight, index) => (
-                  <li key={index} className="text-gray-600 dark:text-gray-300">
-                    {highlight}
-                  </li>
-                ))}
-              </ul>
-            </CardContent>
-          </Card>
-        </div>
       </div>
     </div>
   );

@@ -50,7 +50,12 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
         const response = await fetch(`/api/products/${params.id}`);
         if (!response.ok) throw new Error('Failed to fetch product');
         const data = await response.json();
-        setProduct(data);
+        setProduct({
+          ...data,
+          price: data.price.toString(),
+          tags: Array.isArray(data.tags) ? data.tags : [],
+          highlights: Array.isArray(data.highlights) ? data.highlights : []
+        });
       } catch (error) {
         console.error('Error fetching product:', error);
         toast.error('Failed to fetch product');
@@ -61,102 +66,6 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
 
     fetchProduct();
   }, [params.id]);
-
-  useEffect(() => {
-    if (product) {
-      if (product.image) setImagePreview(product.image);
-      if (product.mobileImage) setMobileImagePreview(product.mobileImage);
-      if (product.desktopImage) setDesktopImagePreview(product.desktopImage);
-    }
-  }, [product]);
-
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-
-    try {
-      const formData = new FormData(e.currentTarget);
-      const imageFile = (e.currentTarget.elements.namedItem('image') as HTMLInputElement).files?.[0];
-      const mobileImageFile = (e.currentTarget.elements.namedItem('mobileImage') as HTMLInputElement).files?.[0];
-      const desktopImageFile = (e.currentTarget.elements.namedItem('desktopImage') as HTMLInputElement).files?.[0];
-
-      if (imageFile) {
-        // First upload the image
-        const imageFormData = new FormData();
-        imageFormData.append('image', imageFile);
-
-        const uploadResponse = await fetch('/api/upload', {
-          method: 'POST',
-          body: imageFormData,
-        });
-
-        if (!uploadResponse.ok) throw new Error('Failed to upload image');
-        const { imageUrl } = await uploadResponse.json();
-        formData.append('image', imageUrl);
-      }
-
-      if (mobileImageFile) {
-        // First upload the mobile image
-        const mobileImageFormData = new FormData();
-        mobileImageFormData.append('image', mobileImageFile);
-
-        const mobileUploadResponse = await fetch('/api/upload', {
-          method: 'POST',
-          body: mobileImageFormData,
-        });
-
-        if (!mobileUploadResponse.ok) throw new Error('Failed to upload mobile image');
-        const { mobileImageUrl } = await mobileUploadResponse.json();
-        formData.append('mobileImage', mobileImageUrl);
-      }
-
-      if (desktopImageFile) {
-        // First upload the desktop image
-        const desktopImageFormData = new FormData();
-        desktopImageFormData.append('image', desktopImageFile);
-
-        const desktopUploadResponse = await fetch('/api/upload', {
-          method: 'POST',
-          body: desktopImageFormData,
-        });
-
-        if (!desktopUploadResponse.ok) throw new Error('Failed to upload desktop image');
-        const { desktopImageUrl } = await desktopUploadResponse.json();
-        formData.append('desktopImage', desktopImageUrl);
-      }
-
-      const updatedProduct = {
-        ...product,
-        name: formData.get('name'),
-        description: formData.get('description'),
-        price: formData.get('price'),
-        category: formData.get('category'),
-        format: formData.get('format'),
-        storage: formData.get('storage'),
-        image: formData.get('image') || product?.image,
-        mobileImage: formData.get('mobileImage') || product?.mobileImage,
-        desktopImage: formData.get('desktopImage') || product?.desktopImage,
-      };
-
-      const response = await fetch(`/api/products/${params.id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(updatedProduct),
-      });
-
-      if (!response.ok) throw new Error('Failed to update product');
-
-      toast.success('Product updated successfully');
-      router.push('/dashboard');
-    } catch (error) {
-      console.error('Error updating product:', error);
-      toast.error('Failed to update product');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -188,6 +97,70 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
         setDesktopImagePreview(reader.result as string);
       };
       reader.readAsDataURL(file);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+
+    try {
+      const formData = new FormData(e.currentTarget);
+      
+      // Get all image files
+      const mainImageFile = (e.currentTarget.elements.namedItem('image') as HTMLInputElement).files?.[0];
+      const mobileImageFile = (e.currentTarget.elements.namedItem('mobileImage') as HTMLInputElement).files?.[0];
+      const desktopImageFile = (e.currentTarget.elements.namedItem('desktopImage') as HTMLInputElement).files?.[0];
+
+      // Clear existing image fields
+      formData.delete('image');
+      formData.delete('mobileImage');
+      formData.delete('desktopImage');
+
+      // Add all files to formData if they exist
+      if (mainImageFile) formData.append('image', mainImageFile);
+      if (mobileImageFile) formData.append('mobileImage', mobileImageFile);
+      if (desktopImageFile) formData.append('desktopImage', desktopImageFile);
+
+      // Process tags and highlights
+      const tagsInput = (formData.get('tags')?.toString() || '').trim();
+      const highlightsInput = (formData.get('highlights')?.toString() || '').trim();
+      
+      // Set the raw strings and let the API handle parsing
+      formData.set('tags', tagsInput);
+      formData.set('highlights', highlightsInput);
+
+      // Add other required fields
+      formData.set('name', (formData.get('name')?.toString() || '').trim());
+      formData.set('description', (formData.get('description')?.toString() || '').trim());
+      formData.set('price', formData.get('price')?.toString() || '0');
+      formData.set('category', formData.get('category')?.toString() || '');
+      formData.set('format', (formData.get('format')?.toString() || '').trim());
+      formData.set('storage', (formData.get('storage')?.toString() || '').trim());
+
+      console.log('Submitting form data:', Object.fromEntries(formData.entries()));
+
+      const response = await fetch(`/api/products/${params.id}`, {
+        method: 'PUT',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        console.error('Server response:', error);
+        throw new Error(error.error || 'Failed to update product');
+      }
+
+      const updatedProduct = await response.json();
+      console.log('Updated product:', updatedProduct);
+
+      toast.success('Product updated successfully');
+      router.push('/dashboard');
+    } catch (error) {
+      console.error('Error updating product:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to update product');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -316,15 +289,35 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
                     required
                   />
                 </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-foreground dark:text-white">Tags (comma-separated)</label>
+                  <Input
+                    name="tags"
+                    defaultValue={product.tags.join(', ')}
+                    placeholder="tag1, tag2, tag3"
+                    className="dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-foreground dark:text-white">Highlights (comma-separated)</label>
+                  <Input
+                    name="highlights"
+                    defaultValue={product.highlights.join(', ')}
+                    placeholder="highlight1, highlight2, highlight3"
+                    className="dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
+                  />
+                </div>
               </div>
 
               <div className="space-y-2">
                 <label className="text-sm font-medium text-foreground dark:text-white">Product Image</label>
                 <div className="flex items-center space-x-4">
-                  {(imagePreview || product?.image) && (
+                  {(imagePreview || product.image) && (
                     <img 
-                      src={imagePreview || product?.image} 
-                      alt={product?.name || 'Product preview'} 
+                      src={imagePreview || product.image} 
+                      alt={product.name || 'Product preview'} 
                       className="w-24 h-24 object-cover rounded-lg border dark:border-gray-700"
                     />
                   )}
@@ -341,10 +334,10 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
               <div className="space-y-2">
                 <label className="text-sm font-medium text-foreground dark:text-white">Mobile Product Image</label>
                 <div className="flex items-center space-x-4">
-                  {(mobileImagePreview || product?.mobileImage) && (
+                  {(mobileImagePreview || product.mobileImage) && (
                     <img 
-                      src={mobileImagePreview || product?.mobileImage} 
-                      alt={product?.name || 'Mobile product preview'} 
+                      src={mobileImagePreview || product.mobileImage} 
+                      alt={product.name || 'Mobile product preview'} 
                       className="w-24 h-24 object-cover rounded-lg border dark:border-gray-700"
                     />
                   )}
@@ -361,10 +354,10 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
               <div className="space-y-2">
                 <label className="text-sm font-medium text-foreground dark:text-white">Desktop Product Image</label>
                 <div className="flex items-center space-x-4">
-                  {(desktopImagePreview || product?.desktopImage) && (
+                  {(desktopImagePreview || product.desktopImage) && (
                     <img 
-                      src={desktopImagePreview || product?.desktopImage} 
-                      alt={product?.name || 'Desktop product preview'} 
+                      src={desktopImagePreview || product.desktopImage} 
+                      alt={product.name || 'Desktop product preview'} 
                       className="w-24 h-24 object-cover rounded-lg border dark:border-gray-700"
                     />
                   )}

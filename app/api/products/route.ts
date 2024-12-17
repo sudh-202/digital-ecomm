@@ -6,6 +6,7 @@ import {
 } from '@/lib/db/json-db';
 import { writeFile, mkdir } from 'fs/promises';
 import { join } from 'path';
+import { extname } from 'path';
 import { v4 as uuidv4 } from 'uuid';
 import type { NewProduct } from '@/lib/db/schema';
 
@@ -26,66 +27,51 @@ export async function POST(request: Request) {
   try {
     const formData = await request.formData();
     
-    // Handle image upload
-    const imageFile = formData.get('image') as File;
-    const mobileImageFile = formData.get('mobileImage') as File;
-    const desktopImageFile = formData.get('desktopImage') as File;
-    let imagePath = '';
+    // Handle file uploads with proper naming
+    const uploadDir = join(process.cwd(), 'data', 'uploads');
+    await mkdir(uploadDir, { recursive: true });
+
+    // Generate slug from name
+    const name = formData.get('name')?.toString();
+    const slug = name.toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)/g, '');
+
+    let imagePath = null;
     let mobileImagePath = null;
     let desktopImagePath = null;
 
-    if (imageFile) {
-      const bytes = await imageFile.arrayBuffer();
-      const buffer = Buffer.from(bytes);
-      
-      // Generate unique filename
-      const uniqueId = uuidv4();
-      const extension = imageFile.name.split('.').pop();
-      const filename = `${uniqueId}.${extension}`;
-      
-      // Save to data/uploads
-      const uploadDir = join(process.cwd(), 'data', 'uploads');
-      await mkdir(uploadDir, { recursive: true });
-      const filePath = join(uploadDir, filename);
-      await writeFile(filePath, buffer);
-      
-      imagePath = `/uploads/${filename}`;
+    // Handle main image
+    const mainImage = formData.get('image') as File;
+    if (mainImage) {
+      const ext = extname(mainImage.name);
+      const mainImageFilename = `${slug}-main.webp`;
+      const mainImageBuffer = Buffer.from(await mainImage.arrayBuffer());
+      await writeFile(join(uploadDir, mainImageFilename), mainImageBuffer);
+      imagePath = `/uploads/${mainImageFilename}`;
     }
 
-    if (mobileImageFile) {
-      const bytes = await mobileImageFile.arrayBuffer();
-      const buffer = Buffer.from(bytes);
-      
-      const uniqueId = uuidv4();
-      const extension = mobileImageFile.name.split('.').pop();
-      const filename = `${uniqueId}.${extension}`;
-      
-      const uploadDir = join(process.cwd(), 'data', 'uploads');
-      await mkdir(uploadDir, { recursive: true });
-      const filePath = join(uploadDir, filename);
-      await writeFile(filePath, buffer);
-      
-      mobileImagePath = `/uploads/${filename}`;
+    // Handle mobile image
+    const mobileImage = formData.get('mobileImage') as File;
+    if (mobileImage) {
+      const ext = extname(mobileImage.name);
+      const mobileImageFilename = `${slug}-mobile.webp`;
+      const mobileImageBuffer = Buffer.from(await mobileImage.arrayBuffer());
+      await writeFile(join(uploadDir, mobileImageFilename), mobileImageBuffer);
+      mobileImagePath = `/uploads/${mobileImageFilename}`;
     }
 
-    if (desktopImageFile) {
-      const bytes = await desktopImageFile.arrayBuffer();
-      const buffer = Buffer.from(bytes);
-      
-      const uniqueId = uuidv4();
-      const extension = desktopImageFile.name.split('.').pop();
-      const filename = `${uniqueId}.${extension}`;
-      
-      const uploadDir = join(process.cwd(), 'data', 'uploads');
-      await mkdir(uploadDir, { recursive: true });
-      const filePath = join(uploadDir, filename);
-      await writeFile(filePath, buffer);
-      
-      desktopImagePath = `/uploads/${filename}`;
+    // Handle desktop image
+    const desktopImage = formData.get('desktopImage') as File;
+    if (desktopImage) {
+      const ext = extname(desktopImage.name);
+      const desktopImageFilename = `${slug}-desktop.webp`;
+      const desktopImageBuffer = Buffer.from(await desktopImage.arrayBuffer());
+      await writeFile(join(uploadDir, desktopImageFilename), desktopImageBuffer);
+      desktopImagePath = `/uploads/${desktopImageFilename}`;
     }
 
     // Create new product object
-    const name = formData.get('name')?.toString();
     const description = formData.get('description')?.toString();
     const priceStr = formData.get('price')?.toString();
     const category = formData.get('category')?.toString();
@@ -160,12 +146,9 @@ export async function POST(request: Request) {
       image: imagePath,
       mobileImage: mobileImagePath,
       desktopImage: desktopImagePath,
-      slug: (name)
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/(^-|-$)/g, ''),
-      createdAt: new Date().toISOString(),
-      userId: 1  // You should replace this with the actual user ID from your auth system
+      userId: 1,  // You should replace this with the actual user ID from your auth system
+      slug,
+      createdAt: new Date().toISOString()
     };
 
     const product = await addProductToFile(newProduct);

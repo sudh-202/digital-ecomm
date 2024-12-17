@@ -1,6 +1,6 @@
 import { promises as fs } from 'fs';
 import path from 'path';
-import { Product, User } from './schema';
+import { Product, User, ProductWithUser } from './schema';
 
 const DATA_DIR = path.join(process.cwd(), 'data');
 const PRODUCTS_FILE = path.join(DATA_DIR, 'products.json');
@@ -202,25 +202,41 @@ export async function addProductToFile(product: Omit<Product, 'id' | 'createdAt'
 }
 
 export async function updateProductInFile(id: number, updatedProduct: Partial<Product>): Promise<Product | null> {
-  const products = await readProductsFromFile();
-  const index = products.findIndex(p => p.id === id);
-  
-  if (index === -1) return null;
-  
-  const existingProduct = products[index];
-  products[index] = {
-    ...existingProduct,
-    ...updatedProduct,
-    id: existingProduct.id,
-    userId: existingProduct.userId,
-    mobileImage: updatedProduct.mobileImage || existingProduct.mobileImage || null,
-    desktopImage: updatedProduct.desktopImage || existingProduct.desktopImage || null,
-    tags: updatedProduct.tags || existingProduct.tags || [],
-    highlights: updatedProduct.highlights || existingProduct.highlights || [],
-  };
-  
-  await writeProductsToFile(products);
-  return products[index];
+  try {
+    console.log('Updating product with ID:', id);
+    console.log('Update data:', updatedProduct);
+    
+    const products = await readProductsFromFile();
+    const index = products.findIndex(p => p.id === id);
+    
+    if (index === -1) {
+      console.log('Product not found with ID:', id);
+      return null;
+    }
+    
+    const existingProduct = products[index];
+    products[index] = {
+      ...existingProduct,  // Keep existing fields
+      ...updatedProduct,   // Override with new fields
+      id: existingProduct.id,  // Ensure ID doesn't change
+      createdAt: existingProduct.createdAt,  // Keep creation date
+      userId: existingProduct.userId,  // Keep user ID
+      // Handle optional fields with fallbacks
+      image: updatedProduct.image || existingProduct.image || null,
+      mobileImage: updatedProduct.mobileImage || existingProduct.mobileImage || null,
+      desktopImage: updatedProduct.desktopImage || existingProduct.desktopImage || null,
+      tags: Array.isArray(updatedProduct.tags) ? updatedProduct.tags : (existingProduct.tags || []),
+      highlights: Array.isArray(updatedProduct.highlights) ? updatedProduct.highlights : (existingProduct.highlights || []),
+      slug: updatedProduct.slug || existingProduct.slug  // Keep existing slug if not updated
+    };
+    
+    console.log('Updated product:', products[index]);
+    await writeProductsToFile(products);
+    return products[index];
+  } catch (error) {
+    console.error('Error in updateProductInFile:', error);
+    throw error;
+  }
 }
 
 export async function getProductByIdFromFile(id: number): Promise<Product | null> {
@@ -228,7 +244,25 @@ export async function getProductByIdFromFile(id: number): Promise<Product | null
   return products.find(p => p.id === id) || null;
 }
 
-export async function getProductBySlugFromFile(slug: string): Promise<Product | null> {
-  const products = await readProductsFromFile();
-  return products.find(p => p.slug === slug) || null;
+export async function getProductBySlugFromFile(slug: string): Promise<(Product & { user: Pick<User, 'name' | 'image'> }) | null> {
+  try {
+    const products = await readProductsFromFile();
+    const product = products.find(p => p.slug === slug);
+    if (!product) return null;
+
+    const users = await fs.readFile(USERS_FILE, 'utf-8');
+    const { users: allUsers } = JSON.parse(users) as UsersData;
+    const user = allUsers.find(u => u.id === product.userId);
+
+    return {
+      ...product,
+      user: {
+        name: user?.name || '',
+        image: user?.image || null
+      }
+    };
+  } catch (error) {
+    console.error('Error getting product by slug:', error);
+    return null;
+  }
 }

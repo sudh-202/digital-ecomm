@@ -46,7 +46,7 @@ export function CartSidebar() {
             <div key={item.id} className="flex items-center space-x-4 p-4 bg-gray-50 dark:bg-gray-900 rounded-lg">
               <div className="relative w-20 h-20 rounded overflow-hidden">
                 <Image
-                  src={`/api/images/${item.image.split('/').pop()}`}
+                  src={`/api/images/${item.image.split('/').pop()} `}
                   alt={item.name}
                   fill
                   className="object-cover rounded"

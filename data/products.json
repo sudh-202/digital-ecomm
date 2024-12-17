@@ -49,30 +49,6 @@
       "createdAt": "2024-12-12T11:00:00.000Z"
     },
     {
-      "name": "English Grammar Guide",
-      "description": "Comprehensive grammar guide with examples",
-      "price": 29.99,
-      "category": "Education",
-      "image": "/uploads/this-is-json-1734000680490.webp",
-      "tags": [
-        "Grammar",
-        "Education",
-        "Reference"
-      ],
-      "highlights": [
-        "Complete Grammar Rules",
-        "Practice Exercises",
-        "Common Mistakes",
-        "Quick Reference"
-      ],
-      "format": "Web App",
-      "storage": "8 Mb",
-      "userId": 1,
-      "slug": "english-grammar-guide",
-      "id": 3,
-      "createdAt": "2024-12-12T11:30:00.000Z"
-    },
-    {
       "name": "The GitHub",
       "description": "This is product for github",
       "price": 200,
@@ -133,9 +109,9 @@
       ],
       "format": "Web template",
       "storage": "12 Kb",
-      "image": "/uploads/d087cc26-3bfa-4058-a0c0-20ce339dd535.png",
-      "mobileImage": "/uploads/3e02070e-ac0a-40dd-967d-0be88e6fa3eb.png",
-      "desktopImage": "/uploads/8800545f-0770-4cc8-8d02-4b006dff1c5a.png",
+      "image": "/uploads/folio-main.webp",
+      "mobileImage": "/uploads/folio-mobile.webp",
+      "desktopImage": "/uploads/folio-desktop.webp",
       "slug": "folio",
       "createdAt": "2024-12-17T11:11:35.144Z",
       "userId": 1,

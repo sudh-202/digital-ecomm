@@ -35,84 +35,128 @@ export async function PUT(
 ) {
   try {
     const formData = await request.formData();
+    console.log('Received form data:', Object.fromEntries(formData.entries()));
     
-    // Handle image uploads
-    const imageFile = formData.get('image') as File;
-    const mobileImageFile = formData.get('mobileImage') as File;
-    const desktopImageFile = formData.get('desktopImage') as File;
-    
-    let imagePath = formData.get('image') as string;
-    let mobileImagePath = formData.get('mobileImage') as string;
-    let desktopImagePath = formData.get('desktopImage') as string;
-
-    if (imageFile) {
-      const bytes = await imageFile.arrayBuffer();
-      const buffer = Buffer.from(bytes);
-      
-      const uniqueId = uuidv4();
-      const extension = imageFile.name.split('.').pop();
-      const filename = `${uniqueId}.${extension}`;
-      
-      const uploadDir = join(process.cwd(), 'data', 'uploads');
-      await mkdir(uploadDir, { recursive: true });
-      const filePath = join(uploadDir, filename);
-      await writeFile(filePath, buffer);
-      
-      imagePath = `/uploads/${filename}`;
-    }
-
-    if (mobileImageFile) {
-      const bytes = await mobileImageFile.arrayBuffer();
-      const buffer = Buffer.from(bytes);
-      
-      const uniqueId = uuidv4();
-      const extension = mobileImageFile.name.split('.').pop();
-      const filename = `${uniqueId}.${extension}`;
-      
-      const uploadDir = join(process.cwd(), 'data', 'uploads');
-      await mkdir(uploadDir, { recursive: true });
-      const filePath = join(uploadDir, filename);
-      await writeFile(filePath, buffer);
-      
-      mobileImagePath = `/uploads/${filename}`;
-    }
-
-    if (desktopImageFile) {
-      const bytes = await desktopImageFile.arrayBuffer();
-      const buffer = Buffer.from(bytes);
-      
-      const uniqueId = uuidv4();
-      const extension = desktopImageFile.name.split('.').pop();
-      const filename = `${uniqueId}.${extension}`;
-      
-      const uploadDir = join(process.cwd(), 'data', 'uploads');
-      await mkdir(uploadDir, { recursive: true });
-      const filePath = join(uploadDir, filename);
-      await writeFile(filePath, buffer);
-      
-      desktopImagePath = `/uploads/${filename}`;
-    }
-
-    const updatedProduct = {
-      name: formData.get('name')?.toString() || '',
-      description: formData.get('description')?.toString() || '',
-      price: parseInt(formData.get('price')?.toString() || '0'),
-      category: formData.get('category')?.toString() || '',
-      format: formData.get('format')?.toString() || '',
-      storage: formData.get('storage')?.toString() || '',
-      image: imagePath || undefined,
-      mobileImage: mobileImagePath || null,
-      desktopImage: desktopImagePath || null,
-      tags: JSON.parse(formData.get('tags')?.toString() || '[]') as string[],
-      highlights: JSON.parse(formData.get('highlights')?.toString() || '[]') as string[],
-    };
-
-    const product = await updateProductInFile(parseInt(params.id), updatedProduct);
-    
-    if (!product) {
+    // Get the current product to get its slug
+    const currentProduct = await getProductByIdFromFile(parseInt(params.id));
+    if (!currentProduct) {
+      console.error('Product not found:', params.id);
       return NextResponse.json(
         { error: 'Product not found' },
         { status: 404 }
+      );
+    }
+
+    // Get and validate required fields
+    const name = formData.get('name')?.toString()?.trim();
+    const description = formData.get('description')?.toString()?.trim();
+    const category = formData.get('category')?.toString()?.trim();
+
+    if (!name || !description || !category) {
+      const missingFields = [];
+      if (!name) missingFields.push('name');
+      if (!description) missingFields.push('description');
+      if (!category) missingFields.push('category');
+
+      console.error('Missing required fields:', missingFields);
+      return NextResponse.json(
+        { error: `Missing required fields: ${missingFields.join(', ')}` },
+        { status: 400 }
+      );
+    }
+
+    const slug = name.toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)/g, '');
+
+    // Handle image uploads with proper naming
+    const uploadDir = join(process.cwd(), 'data', 'uploads');
+    await mkdir(uploadDir, { recursive: true });
+
+    let imagePath: string | null = currentProduct.image;
+    let mobileImagePath: string | null = currentProduct.mobileImage;
+    let desktopImagePath: string | null = currentProduct.desktopImage;
+
+    try {
+      // Handle main image
+      const mainImage = formData.get('image') as File | null;
+      if (mainImage instanceof File && mainImage.size > 0) {
+        const mainImageFilename = `${slug}-main.webp`;
+        const mainImageBuffer = Buffer.from(await mainImage.arrayBuffer());
+        await writeFile(join(uploadDir, mainImageFilename), mainImageBuffer);
+        imagePath = `/uploads/${mainImageFilename}`;
+      }
+
+      // Handle mobile image
+      const mobileImage = formData.get('mobileImage') as File | null;
+      if (mobileImage instanceof File && mobileImage.size > 0) {
+        const mobileImageFilename = `${slug}-mobile.webp`;
+        const mobileImageBuffer = Buffer.from(await mobileImage.arrayBuffer());
+        await writeFile(join(uploadDir, mobileImageFilename), mobileImageBuffer);
+        mobileImagePath = `/uploads/${mobileImageFilename}`;
+      }
+
+      // Handle desktop image
+      const desktopImage = formData.get('desktopImage') as File | null;
+      if (desktopImage instanceof File && desktopImage.size > 0) {
+        const desktopImageFilename = `${slug}-desktop.webp`;
+        const desktopImageBuffer = Buffer.from(await desktopImage.arrayBuffer());
+        await writeFile(join(uploadDir, desktopImageFilename), desktopImageBuffer);
+        desktopImagePath = `/uploads/${desktopImageFilename}`;
+      }
+    } catch (error) {
+      console.error('Error handling image uploads:', error);
+      return NextResponse.json(
+        { error: 'Failed to handle image uploads' },
+        { status: 500 }
+      );
+    }
+
+    // Process tags and highlights
+    const tagsStr = formData.get('tags')?.toString() || '';
+    const highlightsStr = formData.get('highlights')?.toString() || '';
+    const tags: string[] = tagsStr.trim() 
+      ? tagsStr.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0)
+      : currentProduct.tags;
+    const highlights: string[] = highlightsStr.trim()
+      ? highlightsStr.split(',').map(highlight => highlight.trim()).filter(highlight => highlight.length > 0)
+      : currentProduct.highlights;
+
+    // Validate price
+    const priceStr = formData.get('price')?.toString();
+    const price = priceStr ? parseFloat(priceStr) : currentProduct.price;
+    if (isNaN(price) || price < 0) {
+      console.error('Invalid price:', priceStr);
+      return NextResponse.json(
+        { error: 'Invalid price' },
+        { status: 400 }
+      );
+    }
+
+    const updatedProduct = {
+      ...currentProduct,
+      name,
+      description,
+      price,
+      category,
+      format: formData.get('format')?.toString()?.trim() || null,
+      storage: formData.get('storage')?.toString()?.trim() || null,
+      image: imagePath,
+      mobileImage: mobileImagePath,
+      desktopImage: desktopImagePath,
+      tags,
+      highlights,
+      slug
+    };
+
+    console.log('Updating product with:', updatedProduct);
+
+    const product = await updateProductInFile(parseInt(params.id), updatedProduct);
+    if (!product) {
+      console.error('Failed to update product in file');
+      return NextResponse.json(
+        { error: 'Failed to update product' },
+        { status: 500 }
       );
     }
     
@@ -120,7 +164,7 @@ export async function PUT(
   } catch (error) {
     console.error('Error updating product:', error);
     return NextResponse.json(
-      { error: 'Failed to update product' },
+      { error: error instanceof Error ? error.message : 'Failed to update product' },
       { status: 500 }
     );
   }

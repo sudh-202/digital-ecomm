@@ -50,15 +50,28 @@ export default function ProductInfo({ params }: ProductInfoProps) {
       <main className="py-16 min-h-screen bg-gray-50 dark:bg-gray-900">
         <div className="flex flex-col gap-6">
           {/* Hero Section with Background Image */}
-          <div className="relative">
+          <div className="relative h-[400px] md:h-[250px]">
             <div className="absolute inset-0 z-0">
-              <Image
-                src={`/api/images/${product.image.split('/').pop()}`}
-                alt=""
-                fill
-                className="object-cover opacity-60 dark:opacity-40"
-                priority
-              />
+              {/* Desktop Image */}
+              <div className="hidden md:block h-full">
+                <Image
+                  src={product.desktopImage || product.image}
+                  alt={product.name}
+                  fill
+                  className="object-cover opacity-60 dark:opacity-40"
+                  priority
+                />
+              </div>
+              {/* Mobile Image */}
+              <div className="block md:hidden h-full">
+                <Image
+                  src={product.mobileImage || product.image}
+                  alt={product.name}
+                  fill
+                  className="object-cover opacity-60 dark:opacity-40"
+                  priority
+                />
+              </div>
             </div>
             <div className="bg-white/80 dark:bg-gray-800/90 backdrop-blur-sm p-10 shadow-lg relative z-10">
               <div className="flex justify-between items-start">

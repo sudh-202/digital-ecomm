@@ -31,10 +31,38 @@ export const products = sqliteTable('products', {
   createdAt: text('created_at').default(sql`CURRENT_TIMESTAMP`),
 });
 
-export type User = typeof users.$inferSelect;
-export type Product = typeof products.$inferSelect;
+export interface User {
+  id: number;
+  name: string;
+  image: string | null;
+  email: string;
+  createdAt: string;
+}
 
-export type NewProduct = Omit<Product, 'id'> & {
+export interface Product {
+  id: number;
+  name: string;
+  description: string;
+  price: number;
+  image: string;
+  mobileImage: string | null;
+  desktopImage: string | null;
+  category: string;
+  slug: string;
+  tags: string[];
+  highlights: string[];
+  format: string | null;
+  storage: string | null;
+  userId: number;
+  createdAt: string;
+}
+
+export interface ProductWithUser extends Product {
+  user: Pick<User, 'name' | 'image'>;
+}
+
+export interface NewProduct extends Omit<Product, 'id' | 'createdAt' | 'userId'> {
   id?: number;
-  createdAt?: string | null;
-};
+  createdAt?: string;
+  userId?: number;
+}

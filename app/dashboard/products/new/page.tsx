@@ -87,11 +87,11 @@ export default function NewProductPage() {
       if (mobileImageFile) formData.append('mobileImage', mobileImageFile);
       if (desktopImageFile) formData.append('desktopImage', desktopImageFile);
 
-      // Process tags and highlights
+      // Process tags and highlights as simple strings
       const tagsInput = (formData.get('tags')?.toString() || '').trim();
       const highlightsInput = (formData.get('highlights')?.toString() || '').trim();
       
-      // Convert comma-separated strings to arrays and filter out empty values
+      // Set the raw strings and let the API handle parsing
       formData.set('tags', tagsInput);
       formData.set('highlights', highlightsInput);
 

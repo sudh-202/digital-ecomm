@@ -142,7 +142,7 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
               <CardTitle className="text-foreground dark:text-white">Product not found</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-muted-foreground dark:text-gray-300">The product you're looking for doesn't exist.</p>
+              <p className="text-muted-foreground dark:text-gray-300">The product you&apos;re looking for doesn&apos;t exist.</p>
               <Button 
                 onClick={() => router.push('/dashboard')}
                 className="mt-4 bg-blue-700 hover:bg-blue-800 text-white"

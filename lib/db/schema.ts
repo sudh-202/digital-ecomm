@@ -61,8 +61,20 @@ export interface ProductWithUser extends Product {
   user: Pick<User, 'name' | 'image'>;
 }
 
-export interface NewProduct extends Omit<Product, 'id' | 'createdAt' | 'userId'> {
+export interface NewProduct {
   id?: number;
+  name: string;
+  description: string;
+  price: number;
+  image: string;
+  mobileImage: string | null;
+  desktopImage: string | null;
+  category: string;
+  slug: string;
+  tags?: string[];
+  highlights?: string[];
+  format: string | null;
+  storage: string | null;
+  userId: number;
   createdAt?: string;
-  userId?: number;
 }

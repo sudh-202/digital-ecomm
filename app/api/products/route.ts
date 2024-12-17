@@ -137,10 +137,10 @@ export async function POST(request: Request) {
     const newProduct: NewProduct = {
       name,
       description,
-      price,
+      price: Number(price),
       category,
-      tags,
-      highlights,
+      highlights: highlights || [],
+      tags: tags || [],
       format: format || null,
       storage: storage || null,
       image: imagePath,

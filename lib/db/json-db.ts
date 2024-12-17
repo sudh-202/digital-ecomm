@@ -221,10 +221,10 @@ export async function updateProductInFile(id: number, updatedProduct: Partial<Pr
       id: existingProduct.id,  // Ensure ID doesn't change
       createdAt: existingProduct.createdAt,  // Keep creation date
       userId: existingProduct.userId,  // Keep user ID
-      // Handle optional fields with fallbacks
-      image: updatedProduct.image || existingProduct.image || null,
-      mobileImage: updatedProduct.mobileImage || existingProduct.mobileImage || null,
-      desktopImage: updatedProduct.desktopImage || existingProduct.desktopImage || null,
+      // Handle optional fields with default values instead of null
+      image: updatedProduct.image || existingProduct.image || '',
+      mobileImage: updatedProduct.mobileImage || existingProduct.mobileImage || '',
+      desktopImage: updatedProduct.desktopImage || existingProduct.desktopImage || '',
       tags: Array.isArray(updatedProduct.tags) ? updatedProduct.tags : (existingProduct.tags || []),
       highlights: Array.isArray(updatedProduct.highlights) ? updatedProduct.highlights : (existingProduct.highlights || []),
       slug: updatedProduct.slug || existingProduct.slug  // Keep existing slug if not updated

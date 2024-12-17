@@ -73,22 +73,36 @@ module.exports = {
   				}
   			},
   			'rotate-gradient': {
-          '0%, 100%': { transform: 'rotate(0deg)' },
-          '50%': { transform: 'rotate(180deg)' },
+          '0%': { 
+            transform: 'rotate(0deg) translate(40px) rotate(0deg)'
+          },
+          '100%': { 
+            transform: 'rotate(360deg) translate(40px) rotate(-360deg)'
+          }
         },
         'revolve-ellipse': {
-          '0%': { transform: 'translate(-50%, -50%) rotate(0deg) translateX(20px)' },
-          '50%': { transform: 'translate(-50%, -50%) rotate(180deg) translateX(40px)' },
-          '100%': { transform: 'translate(-50%, -50%) rotate(360deg) translateX(20px)' },
+          '0%': { 
+            transform: 'rotate(0deg) translate(60px) rotate(0deg)',
+            opacity: '0.8'
+          },
+          '50%': {
+            opacity: '1'
+          },
+          '100%': { 
+            transform: 'rotate(360deg) translate(60px) rotate(-360deg)',
+            opacity: '0.8'
+          }
         },
         'comet': {
           '0%': { 
-            transform: 'translateX(-100%) translateY(0%) rotate(-45deg)',
+            transform: 'translateX(-100%)',
             opacity: '0'
           },
-          '20%, 80%': { opacity: '1' },
+          '10%, 90%': { 
+            opacity: '1'
+          },
           '100%': { 
-            transform: 'translateX(200%) translateY(0%) rotate(-45deg)',
+            transform: 'translateX(100vw)',
             opacity: '0'
           },
         }
@@ -96,9 +110,9 @@ module.exports = {
   		animation: {
   			'accordion-down': 'accordion-down 0.2s ease-out',
   			'accordion-up': 'accordion-up 0.2s ease-out',
-  			'rotate-gradient': 'rotate-gradient 8s linear infinite',
-        'revolve-ellipse': 'revolve-ellipse 12s linear infinite',
-        'comet': 'comet 8s ease-in-out infinite',
+  			'rotate-gradient': 'rotate-gradient 12s linear infinite',
+        'revolve-ellipse': 'revolve-ellipse 20s linear infinite',
+        'comet': 'comet 4s linear infinite',
   		}
   	}
   },

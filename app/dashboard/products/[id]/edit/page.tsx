@@ -178,7 +178,7 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
   }
 
   return (
-    <div className="min-h-screen p-8 bg-background dark:bg-gray-900">
+    <div className="min-h-screen p-8 bg-background dark:bg-gray-900 mt-20">
       <div className="max-w-5xl mx-auto space-y-6">
         <div className="flex items-center justify-between">
           <Button
@@ -189,13 +189,7 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
             <ArrowLeft className="h-4 w-4" />
             Back
           </Button>
-          <Button
-            onClick={handleSubmit}
-            disabled={isSubmitting}
-            className="bg-blue-600 hover:bg-blue-700 text-white"
-          >
-            {isSubmitting ? 'Saving...' : 'Save Changes'}
-          </Button>
+          
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-8">
@@ -441,6 +435,13 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
               </div>
             </CardContent>
           </Card>
+          <Button
+            onClick={handleSubmit}
+            disabled={isSubmitting}
+            className="bg-blue-600 hover:bg-blue-700 text-white rounded-2xl"
+          >
+            {isSubmitting ? 'Saving...' : 'Save Changes'}
+          </Button>
         </form>
       </div>
     </div>

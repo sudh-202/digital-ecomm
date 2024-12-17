@@ -24,6 +24,10 @@ export default function ProductList() {
   const { isPurchased } = usePurchased();
   const router = useRouter();
 
+  useEffect(() => {
+    return () => {};
+  }, []);
+
   const categories = [
     "Education",
     "Business",
@@ -121,21 +125,27 @@ export default function ProductList() {
     });
   };
 
-  const handleAddToCart = (product: ProductWithUser) => {
+  const handleAddToCart = (e: React.MouseEvent, product: ProductWithUser) => {
+    e.stopPropagation(); // Prevent card click
     addToCart(product);
     toast.success("Added to cart!");
   };
 
-  const handleDownload = (product: ProductWithUser) => {
+  const handleDownload = (e: React.MouseEvent, product: ProductWithUser) => {
+    e.stopPropagation(); // Prevent card click
     toast.success(`Starting download: ${product.name}`);
-    
     // Simulate download start
     setTimeout(() => {
       window.open(`/data/downloads/${product.id}`, "_blank");
     }, 1000);
   };
 
-  const handleCardClick = (product: ProductWithUser) => {
+  const handleCardClick = (e: React.MouseEvent, product: ProductWithUser) => {
+    // Prevent card click if clicking on buttons
+    if ((e.target as HTMLElement).closest('button')) {
+      e.stopPropagation();
+      return;
+    }
     router.push(`/products/${product.slug}`);
   };
 
@@ -244,7 +254,7 @@ export default function ProductList() {
               <Card 
                 key={product.id} 
                 className="overflow-hidden hover:shadow-lg transition-all duration-300 cursor-pointer bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm"
-                onClick={() => handleCardClick(product)}
+                onClick={(e) => handleCardClick(e, product)}
               >
                 <div className="relative h-48 w-full bg-gray-100 dark:bg-gray-700">
                   {product.image && (
@@ -277,24 +287,23 @@ export default function ProductList() {
                   {/* <p className="text-gray-600 dark:text-gray-300 text-sm mb-4">
                     {product.description}
                   </p> */}
-                  <CardFooter className="flex justify-between items-center">
-                    <div className="text-lg font-semibold">${product.price}</div>
-                    <div className="space-x-2">
-                      {isPurchased(product.id.toString()) ? (
+                  <CardFooter className="flex gap-6 justify-between items-center">
+                    <div className="text-2xl font-semibold text-blue-500">${product.price}</div>
+                    <div className="flex gap-2 flex-col">
+                      <Button
+                        onClick={(e) => handleAddToCart(e, product)}
+                        variant="outline"
+                        className="bg-blue-700 hover:bg-blue-800 text-white hover:text-white backdrop-blur-sm rounded-2xl"
+                      >
+                        Add to Cart
+                      </Button>
+                      {isPurchased(product.id.toString()) && (
                         <Button
-                          onClick={() => handleDownload(product)}
-                          className="dark:bg-white/80 backdrop-blur-sm rounded-2xl gap-2"
+                          onClick={(e) => handleDownload(e, product)}
+                          className="bg-green-600 hover:bg-green-700 text-white backdrop-blur-sm rounded-2xl gap-2"
                         >
                           <Download className="h-4 w-4" />
                           Download
-                        </Button>
-                      ) : (
-                        <Button
-                          onClick={() => handleAddToCart(product)}
-                          variant="outline"
-                          className="dark:bg-white/80 backdrop-blur-sm rounded-2xl"
-                        >
-                          Add to Cart
                         </Button>
                       )}
                     </div>

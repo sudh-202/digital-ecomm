@@ -56,13 +56,14 @@ const CheckoutPage = () => {
 
   const handlePayment = async () => {
     // Simulate payment processing
-    toast.loading("Processing payment...");
+    const loadingToast = toast.loading("Processing payment...");
     
     // Simulate API call delay
     await new Promise(resolve => setTimeout(resolve, 2000));
     
-    // Success
-    toast.success("Payment successful! Redirecting to downloads...");
+    // Success and dismiss loading toast
+    toast.dismiss(loadingToast);
+    toast.success("Payment successful!");
     
     // Save purchased items
     const purchasedItems = items.map(item => ({
@@ -79,10 +80,8 @@ const CheckoutPage = () => {
     // Clear cart
     clearCart();
     
-    // Redirect to downloads page
-    setTimeout(() => {
-      router.push("/dashboard/downloads");
-    }, 1500);
+    // Redirect to downloads page immediately
+    router.push("/dashboard/downloads");
   };
 
   if (!mounted) {

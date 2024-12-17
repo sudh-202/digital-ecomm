@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Download } from "lucide-react";
+import { Download, Calendar } from "lucide-react";
 import { toast } from "sonner";
 import { usePurchased } from "@/context/purchased-context";
 import { useEffect, useState } from "react";
@@ -24,12 +24,13 @@ export default function DownloadsPage() {
   }, []);
 
   const handleDownload = (item: DownloadItem) => {
-    // In a real application, this would trigger a secure download
-    toast.success(`Starting download: ${item.name}`);
+    const loadingToast = toast.loading(`Preparing download: ${item.name}`);
     
-    // Simulate download start
+    // Simulate download preparation
     setTimeout(() => {
+      toast.dismiss(loadingToast);
       window.open(item.downloadUrl, "_blank");
+      toast.success(`Download started: ${item.name}`);
     }, 1000);
   };
 
@@ -54,23 +55,24 @@ export default function DownloadsPage() {
             {purchasedItems.map((item) => (
               <Card key={item.id} className="dark:bg-gray-800 dark:border-gray-700">
                 <CardHeader>
-                  <CardTitle className="text-xl font-bold dark:text-white">{item.name}</CardTitle>
-                  <CardDescription className="dark:text-gray-300">
-                    Purchased on {new Date(item.purchaseDate).toLocaleDateString()}
+                  <CardTitle className="text-xl font-semibold dark:text-white flex justify-between items-center">
+                    {item.name}
+                    <Button
+                      onClick={() => handleDownload(item)}
+                      className="bg-green-600 hover:bg-green-700 text-white gap-2"
+                    >
+                      <Download className="h-4 w-4" />
+                      Download
+                    </Button>
+                  </CardTitle>
+                  <CardDescription className="dark:text-gray-300 flex items-center gap-2">
+                    <Calendar className="h-4 w-4" />
+                    {new Date(item.purchaseDate).toLocaleDateString()}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <p className="text-gray-600 dark:text-gray-300">{item.description}</p>
                 </CardContent>
-                <CardFooter>
-                  <Button
-                    onClick={() => handleDownload(item)}
-                    className="bg-blue-600 hover:bg-blue-700 text-white gap-2"
-                  >
-                    <Download className="h-4 w-4" />
-                    Download
-                  </Button>
-                </CardFooter>
               </Card>
             ))}
           </div>

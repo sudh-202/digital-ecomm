@@ -14,12 +14,14 @@ interface PurchasedContextType {
   purchasedItems: PurchasedItem[];
   addPurchasedItems: (items: PurchasedItem[]) => void;
   isPurchased: (itemId: string) => boolean;
+  resetPurchasedItems: () => void;
 }
 
 const PurchasedContext = createContext<PurchasedContextType>({
   purchasedItems: [],
   addPurchasedItems: () => {},
   isPurchased: () => false,
+  resetPurchasedItems: () => {},
 });
 
 export const PurchasedProvider = ({ children }: { children: React.ReactNode }) => {
@@ -28,11 +30,16 @@ export const PurchasedProvider = ({ children }: { children: React.ReactNode }) =
 
   useEffect(() => {
     setMounted(true);
-    // Load purchased items from localStorage
+    // Load purchased items from localStorage only if not already loaded
     const savedItems = localStorage.getItem("purchasedItems");
-    if (savedItems) {
+    if (savedItems && purchasedItems.length === 0) {
       setPurchasedItems(JSON.parse(savedItems));
     }
+    // Reset purchased items when component unmounts
+    return () => {
+      setPurchasedItems([]);
+      localStorage.removeItem("purchasedItems");
+    };
   }, []);
 
   useEffect(() => {
@@ -50,17 +57,27 @@ export const PurchasedProvider = ({ children }: { children: React.ReactNode }) =
     return purchasedItems.some(item => item.id === itemId);
   };
 
+  const resetPurchasedItems = () => {
+    setPurchasedItems([]);
+    localStorage.removeItem("purchasedItems");
+  };
+
   return (
-    <PurchasedContext.Provider
-      value={{
-        purchasedItems,
-        addPurchasedItems,
-        isPurchased,
-      }}
-    >
+    <PurchasedContext.Provider value={{ 
+      purchasedItems, 
+      addPurchasedItems, 
+      isPurchased,
+      resetPurchasedItems
+    }}>
       {children}
     </PurchasedContext.Provider>
   );
 };
 
-export const usePurchased = () => useContext(PurchasedContext);
+export const usePurchased = () => {
+  const context = useContext(PurchasedContext);
+  if (!context) {
+    throw new Error("usePurchased must be used within a PurchasedProvider");
+  }
+  return context;
+};

@@ -13,6 +13,7 @@ import { ArrowLeft } from 'lucide-react';
 const CATEGORIES = [
   { value: 'education', label: 'Education' },
   { value: 'business', label: 'Business' },
+  { value: 'webtemplates', label: 'Web Templates' },
   { value: 'technology', label: 'Technology' },
   { value: 'language', label: 'Language' },
   { value: 'professional', label: 'Professional' }
@@ -22,6 +23,8 @@ export default function NewProductPage() {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [mobileImagePreview, setMobileImagePreview] = useState<string | null>(null);
+  const [desktopImagePreview, setDesktopImagePreview] = useState<string | null>(null);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -36,57 +39,81 @@ export default function NewProductPage() {
     }
   };
 
+  const handleMobileImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setMobileImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    } else {
+      setMobileImagePreview(null);
+    }
+  };
+
+  const handleDesktopImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setDesktopImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    } else {
+      setDesktopImagePreview(null);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitting(true);
 
     try {
       const formData = new FormData(e.currentTarget);
-      const imageFile = (e.currentTarget.elements.namedItem('image') as HTMLInputElement).files?.[0];
-      let imageUrl;
       
-      if (imageFile) {
-        // First upload the image
-        const imageFormData = new FormData();
-        imageFormData.append('image', imageFile);
-        
-        const uploadResponse = await fetch('/api/upload', {
-          method: 'POST',
-          body: imageFormData,
-        });
-        
-        if (!uploadResponse.ok) throw new Error('Failed to upload image');
-        const imageData = await uploadResponse.json();
-        imageUrl = imageData.imageUrl;
+      // Get all image files
+      const mainImageFile = (e.currentTarget.elements.namedItem('image') as HTMLInputElement).files?.[0];
+      const mobileImageFile = (e.currentTarget.elements.namedItem('mobileImage') as HTMLInputElement).files?.[0];
+      const desktopImageFile = (e.currentTarget.elements.namedItem('desktopImage') as HTMLInputElement).files?.[0];
+
+      if (!mainImageFile) {
+        toast.error('Main image is required');
+        return;
       }
 
-      const product = {
-        name: formData.get('name'),
-        description: formData.get('description'),
-        price: formData.get('price'),
-        category: formData.get('category'),
-        format: formData.get('format'),
-        storage: formData.get('storage'),
-        image: imageUrl,
-        tags: [],
-        highlights: []
-      };
+      // Add all files to formData
+      formData.append('image', mainImageFile);
+      if (mobileImageFile) formData.append('mobileImage', mobileImageFile);
+      if (desktopImageFile) formData.append('desktopImage', desktopImageFile);
+
+      // Process tags and highlights
+      const tagsInput = (formData.get('tags')?.toString() || '').trim();
+      const highlightsInput = (formData.get('highlights')?.toString() || '').trim();
+      
+      // Convert comma-separated strings to arrays and filter out empty values
+      formData.set('tags', tagsInput);
+      formData.set('highlights', highlightsInput);
+
+      // Add other fields with proper defaults
+      formData.set('format', formData.get('format')?.toString()?.trim() || '');
+      formData.set('storage', formData.get('storage')?.toString()?.trim() || '');
 
       const response = await fetch('/api/products', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(product),
+        body: formData,
       });
 
-      if (!response.ok) throw new Error('Failed to create product');
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to create product');
+      }
 
       toast.success('Product created successfully');
       router.push('/dashboard');
     } catch (error) {
       console.error('Error creating product:', error);
-      toast.error('Failed to create product');
+      toast.error(error instanceof Error ? error.message : 'Failed to create product');
     } finally {
       setIsSubmitting(false);
     }
@@ -109,110 +136,183 @@ export default function NewProductPage() {
             </div>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-foreground dark:text-white">Name</label>
-                <Input
-                  name="name"
-                  placeholder="Enter product name"
-                  className="dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
-                  required
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-foreground dark:text-white">Description</label>
-                <Textarea
-                  name="description"
-                  placeholder="Enter product description"
-                  className="dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
-                  required
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-foreground dark:text-white">Price</label>
-                  <Input
-                    name="price"
-                    type="number"
-                    step="0.01"
-                    placeholder="Enter price"
-                    className="dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
-                    required
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-foreground dark:text-white">Category</label>
-                  <Select name="category">
-                    <SelectTrigger className="dark:bg-gray-700 dark:border-gray-600 dark:text-white">
-                      <SelectValue placeholder="Select category" />
-                    </SelectTrigger>
-                    <SelectContent className="dark:bg-gray-800">
-                      {CATEGORIES.map((category) => (
-                        <SelectItem 
-                          key={category.value} 
-                          value={category.value}
-                          className="dark:text-white dark:focus:bg-gray-700"
-                        >
-                          {category.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-foreground dark:text-white">Format</label>
-                  <Input
-                    name="format"
-                    placeholder={'Enter format (e.g., PDF, Video)'}
-                    className="dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
-                    required
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-foreground dark:text-white">Storage</label>
-                  <Input
-                    name="storage"
-                    placeholder="Enter storage details"
-                    className="dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-foreground dark:text-white">Product Image</label>
-                <div className="flex items-center space-x-4">
-                  {imagePreview && (
-                    <img 
-                      src={imagePreview} 
-                      alt="Product preview" 
-                      className="w-24 h-24 object-cover rounded-lg border dark:border-gray-700"
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <div>
+                    <label htmlFor="name" className="block text-sm font-medium mb-2">
+                      Name
+                    </label>
+                    <Input
+                      id="name"
+                      name="name"
+                      placeholder="Product name"
+                      required
                     />
-                  )}
-                  <Input
-                    type="file"
-                    name="image"
-                    accept="image/*"
-                    onChange={handleImageChange}
-                    className="dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:file:bg-gray-600 dark:file:text-white dark:file:border-gray-500"
-                  />
+                  </div>
+
+                  <div>
+                    <label htmlFor="description" className="block text-sm font-medium mb-2">
+                      Description
+                    </label>
+                    <Textarea
+                      id="description"
+                      name="description"
+                      placeholder="Product description"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label htmlFor="price" className="block text-sm font-medium mb-2">
+                      Price
+                    </label>
+                    <Input
+                      id="price"
+                      name="price"
+                      type="number"
+                      placeholder="Price in cents"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label htmlFor="category" className="block text-sm font-medium mb-2">
+                      Category
+                    </label>
+                    <Select name="category" defaultValue="education">
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select category" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {CATEGORIES.map(category => (
+                          <SelectItem key={category.value} value={category.value}>
+                            {category.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <label htmlFor="format" className="block text-sm font-medium mb-2">
+                      Format
+                    </label>
+                    <Input
+                      id="format"
+                      name="format"
+                      placeholder="Product format"
+                    />
+                  </div>
+
+                  <div>
+                    <label htmlFor="storage" className="block text-sm font-medium mb-2">
+                      Storage
+                    </label>
+                    <Input
+                      id="storage"
+                      name="storage"
+                      placeholder="Storage details"
+                    />
+                  </div>
+
+                  <div>
+                    <label htmlFor="tags" className="block text-sm font-medium mb-2">
+                      Tags (comma-separated)
+                    </label>
+                    <Input
+                      id="tags"
+                      name="tags"
+                      placeholder="tag1, tag2, tag3"
+                    />
+                  </div>
+
+                  <div>
+                    <label htmlFor="highlights" className="block text-sm font-medium mb-2">
+                      Highlights (comma-separated)
+                    </label>
+                    <Input
+                      id="highlights"
+                      name="highlights"
+                      placeholder="highlight1, highlight2, highlight3"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-6">
+                  <div>
+                    <label className="block text-sm font-medium mb-2">
+                      Main Image
+                    </label>
+                    <Input
+                      id="image"
+                      name="image"
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageChange}
+                      required
+                    />
+                    {imagePreview && (
+                      <div className="mt-2 relative aspect-video rounded-lg overflow-hidden">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={imagePreview}
+                          alt="Preview"
+                          className="object-cover w-full h-full"
+                        />
+                      </div>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium mb-2">
+                      Mobile Image
+                    </label>
+                    <Input
+                      id="mobileImage"
+                      name="mobileImage"
+                      type="file"
+                      accept="image/*"
+                      onChange={handleMobileImageChange}
+                    />
+                    {mobileImagePreview && (
+                      <div className="mt-2 relative w-[375px] aspect-[9/16] rounded-lg overflow-hidden">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={mobileImagePreview}
+                          alt="Mobile Preview"
+                          className="object-cover w-full h-full"
+                        />
+                      </div>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium mb-2">
+                      Desktop Image
+                    </label>
+                    <Input
+                      id="desktopImage"
+                      name="desktopImage"
+                      type="file"
+                      accept="image/*"
+                      onChange={handleDesktopImageChange}
+                    />
+                    {desktopImagePreview && (
+                      <div className="mt-2 relative aspect-video rounded-lg overflow-hidden">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={desktopImagePreview}
+                          alt="Desktop Preview"
+                          className="object-cover w-full h-full"
+                        />
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
 
-              <div className="flex justify-end space-x-4 mt-6">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => router.push('/dashboard')}
-                  className="dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600 dark:border-gray-600"
-                >
-                  Cancel
-                </Button>
+              <div className="flex justify-end">
                 <Button
                   type="submit"
                   disabled={isSubmitting}

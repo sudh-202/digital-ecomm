@@ -19,6 +19,8 @@ export const products = sqliteTable('products', {
   description: text('description').notNull(),
   price: integer('price').notNull(),
   image: text('image').notNull(),
+  mobileImage: text('mobile_image'),
+  desktopImage: text('desktop_image'),
   category: text('category').notNull(),
   slug: text('slug').notNull(),
   tags: text('tags', { mode: 'json' }).$type<string[]>(),

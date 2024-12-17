@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { readProductsFromFile, writeProductsToFile, getProductByIdFromFile } from '@/lib/db/json-db';
-import { unlink, writeFile } from 'fs/promises';
+import { readProductsFromFile, writeProductsToFile, getProductByIdFromFile, updateProductInFile } from '@/lib/db/json-db';
+import { unlink, writeFile, mkdir } from 'fs/promises';
 import { join } from 'path';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -34,36 +34,18 @@ export async function PUT(
   { params }: { params: { id: string } }
 ) {
   try {
-    const productId = parseInt(params.id);
     const formData = await request.formData();
-    const products = await readProductsFromFile();
     
-    // Find existing product
-    const productIndex = products.findIndex(p => p.id === productId);
-    if (productIndex === -1) {
-      return NextResponse.json(
-        { error: 'Product not found' },
-        { status: 404 }
-      );
-    }
-
-    const existingProduct = products[productIndex];
-    let imagePath = existingProduct.image;
-
-    // Handle new image upload if provided
+    // Handle image uploads
     const imageFile = formData.get('image') as File;
-    if (imageFile) {
-      // Delete old image if it exists
-      if (existingProduct.image) {
-        try {
-          const oldImagePath = existingProduct.image.replace('/data/uploads/', '');
-          await unlink(join(process.cwd(), 'data', 'uploads', oldImagePath));
-        } catch (error) {
-          console.error('Error deleting old image:', error);
-        }
-      }
+    const mobileImageFile = formData.get('mobileImage') as File;
+    const desktopImageFile = formData.get('desktopImage') as File;
+    
+    let imagePath = formData.get('image') as string;
+    let mobileImagePath = formData.get('mobileImage') as string;
+    let desktopImagePath = formData.get('desktopImage') as string;
 
-      // Save new image
+    if (imageFile) {
       const bytes = await imageFile.arrayBuffer();
       const buffer = Buffer.from(bytes);
       
@@ -71,37 +53,74 @@ export async function PUT(
       const extension = imageFile.name.split('.').pop();
       const filename = `${uniqueId}.${extension}`;
       
-      await writeFile(join(process.cwd(), 'data', 'uploads', filename), buffer);
-      imagePath = `/data/uploads/${filename}`;
+      const uploadDir = join(process.cwd(), 'data', 'uploads');
+      await mkdir(uploadDir, { recursive: true });
+      const filePath = join(uploadDir, filename);
+      await writeFile(filePath, buffer);
+      
+      imagePath = `/uploads/${filename}`;
     }
 
-    // Parse JSON strings back to arrays
-    const tags = JSON.parse(formData.get('tags') as string || '[]');
-    const highlights = JSON.parse(formData.get('highlights') as string || '[]');
+    if (mobileImageFile) {
+      const bytes = await mobileImageFile.arrayBuffer();
+      const buffer = Buffer.from(bytes);
+      
+      const uniqueId = uuidv4();
+      const extension = mobileImageFile.name.split('.').pop();
+      const filename = `${uniqueId}.${extension}`;
+      
+      const uploadDir = join(process.cwd(), 'data', 'uploads');
+      await mkdir(uploadDir, { recursive: true });
+      const filePath = join(uploadDir, filename);
+      await writeFile(filePath, buffer);
+      
+      mobileImagePath = `/uploads/${filename}`;
+    }
 
-    // Update product
+    if (desktopImageFile) {
+      const bytes = await desktopImageFile.arrayBuffer();
+      const buffer = Buffer.from(bytes);
+      
+      const uniqueId = uuidv4();
+      const extension = desktopImageFile.name.split('.').pop();
+      const filename = `${uniqueId}.${extension}`;
+      
+      const uploadDir = join(process.cwd(), 'data', 'uploads');
+      await mkdir(uploadDir, { recursive: true });
+      const filePath = join(uploadDir, filename);
+      await writeFile(filePath, buffer);
+      
+      desktopImagePath = `/uploads/${filename}`;
+    }
+
     const updatedProduct = {
-      ...existingProduct,
-      name: formData.get('name') as string || existingProduct.name,
-      description: formData.get('description') as string || existingProduct.description,
-      price: parseFloat(formData.get('price') as string || existingProduct.price.toString()),
-      category: formData.get('category') as string || existingProduct.category,
-      tags,
-      highlights,
-      format: formData.get('format') as string || existingProduct.format,
-      storage: formData.get('storage') as string || existingProduct.storage,
-      image: imagePath,
-      slug: (formData.get('name') as string || existingProduct.name).toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+      name: formData.get('name')?.toString() || '',
+      description: formData.get('description')?.toString() || '',
+      price: parseInt(formData.get('price')?.toString() || '0'),
+      category: formData.get('category')?.toString() || '',
+      format: formData.get('format')?.toString() || '',
+      storage: formData.get('storage')?.toString() || '',
+      image: imagePath || undefined,
+      mobileImage: mobileImagePath || null,
+      desktopImage: desktopImagePath || null,
+      tags: JSON.parse(formData.get('tags')?.toString() || '[]') as string[],
+      highlights: JSON.parse(formData.get('highlights')?.toString() || '[]') as string[],
     };
 
-    products[productIndex] = updatedProduct;
-    await writeProductsToFile(products);
-
-    return NextResponse.json(updatedProduct);
+    const product = await updateProductInFile(parseInt(params.id), updatedProduct);
+    
+    if (!product) {
+      return NextResponse.json(
+        { error: 'Product not found' },
+        { status: 404 }
+      );
+    }
+    
+    return NextResponse.json(product);
   } catch (error) {
     console.error('Error updating product:', error);
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Failed to update product' },
+      { error: 'Failed to update product' },
       { status: 500 }
     );
   }

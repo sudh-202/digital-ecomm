@@ -4,12 +4,8 @@ const nextConfig = {
     unoptimized: true,
     remotePatterns: [
       {
-        protocol: 'http',
-        hostname: 'localhost',
-      },
-      {
         protocol: 'https',
-        hostname: 'images.unsplash.com',
+        hostname: '**',
       },
     ],
   },
@@ -22,6 +18,10 @@ const nextConfig = {
       {
         source: '/data/:path*',
         destination: '/data/:path*',
+      },
+      {
+        source: '/uploads/:path*',
+        destination: '/data/uploads/:path*',
       },
     ];
   },

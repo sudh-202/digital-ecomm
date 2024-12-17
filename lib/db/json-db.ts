@@ -183,7 +183,11 @@ export async function addProductToFile(product: Omit<Product, 'id' | 'createdAt'
     const products = await readProductsFromFile();
     const newProduct: Product = {
       ...product,
-      id: products.length + 1,
+      id: Math.max(0, ...products.map(p => p.id)) + 1,
+      mobileImage: product.mobileImage || null,
+      desktopImage: product.desktopImage || null,
+      tags: product.tags || [],
+      highlights: product.highlights || [],
       createdAt: new Date().toISOString(),
       slug: createSlug(product.name)
     };
@@ -195,6 +199,28 @@ export async function addProductToFile(product: Omit<Product, 'id' | 'createdAt'
     console.error('Error adding product:', error);
     throw error;
   }
+}
+
+export async function updateProductInFile(id: number, updatedProduct: Partial<Product>): Promise<Product | null> {
+  const products = await readProductsFromFile();
+  const index = products.findIndex(p => p.id === id);
+  
+  if (index === -1) return null;
+  
+  const existingProduct = products[index];
+  products[index] = {
+    ...existingProduct,
+    ...updatedProduct,
+    id: existingProduct.id,
+    userId: existingProduct.userId,
+    mobileImage: updatedProduct.mobileImage || existingProduct.mobileImage || null,
+    desktopImage: updatedProduct.desktopImage || existingProduct.desktopImage || null,
+    tags: updatedProduct.tags || existingProduct.tags || [],
+    highlights: updatedProduct.highlights || existingProduct.highlights || [],
+  };
+  
+  await writeProductsToFile(products);
+  return products[index];
 }
 
 export async function getProductByIdFromFile(id: number): Promise<Product | null> {

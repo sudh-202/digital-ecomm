@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Pencil, Trash2, Plus } from "lucide-react";
+import { Pencil, Trash2, Plus, Eye } from "lucide-react";
 import { toast } from 'sonner';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -24,6 +24,8 @@ interface Product {
   format: string;
   storage: string;
   image?: string;
+  mobileImage?: string;
+  desktopImage?: string;
   createdAt: string;
   slug: string;
 }
@@ -31,6 +33,7 @@ interface Product {
 const CATEGORIES = [
   { value: 'education', label: 'Education' },
   { value: 'business', label: 'Business' },
+  { value: 'webtemplaes', label: 'Web Templates' },
   { value: 'technology', label: 'Technology' },
   { value: 'language', label: 'Language' },
   { value: 'professional', label: 'Professional' }
@@ -122,6 +125,14 @@ export default function DashboardPage() {
                     <CardTitle className="text-xl flex justify-between items-start text-foreground dark:text-white">
                       <span className="truncate">{product.name}</span>
                       <div className="flex space-x-2 ml-4">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => router.push(`/products/preview/${product.slug}`)}
+                          className="hover:bg-accent dark:hover:bg-gray-700"
+                        >
+                          <Eye className="h-4 w-4 text-foreground dark:text-white" />
+                        </Button>
                         <Button
                           variant="ghost"
                           size="icon"

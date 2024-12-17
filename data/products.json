@@ -6,7 +6,11 @@
       "price": 49.99,
       "category": "Education",
       "image": "/uploads/nextjs-1734000439112.webp",
-      "tags": ["Education", "Learning", "English"],
+      "tags": [
+        "Education",
+        "Learning",
+        "English"
+      ],
       "highlights": [
         "Interactive Lessons",
         "Practice Exercises",
@@ -26,7 +30,11 @@
       "price": 79.99,
       "category": "Business",
       "image": "/uploads/the-nextjs-1734008484571.webp",
-      "tags": ["Business", "Professional", "English"],
+      "tags": [
+        "Business",
+        "Professional",
+        "English"
+      ],
       "highlights": [
         "Business Communication",
         "Email Writing",
@@ -46,7 +54,11 @@
       "price": 29.99,
       "category": "Education",
       "image": "/uploads/this-is-json-1734000680490.webp",
-      "tags": ["Grammar", "Education", "Reference"],
+      "tags": [
+        "Grammar",
+        "Education",
+        "Reference"
+      ],
       "highlights": [
         "Complete Grammar Rules",
         "Practice Exercises",
@@ -66,7 +78,11 @@
       "price": 200,
       "category": "Technology",
       "image": "/uploads/github.webp",
-      "tags": ["Git", "Version Control", "Development"],
+      "tags": [
+        "Git",
+        "Version Control",
+        "Development"
+      ],
       "highlights": [
         "Repository Management",
         "Code Collaboration",
@@ -86,7 +102,11 @@
       "price": 55,
       "category": "Technology",
       "image": "/uploads/metaverse-1734035999724.webp",
-      "tags": ["VR", "Metaverse", "Technology"],
+      "tags": [
+        "VR",
+        "Metaverse",
+        "Technology"
+      ],
       "highlights": [
         "Virtual Reality",
         "3D Environments",
@@ -99,6 +119,27 @@
       "slug": "metaverse",
       "id": 5,
       "createdAt": "2024-12-12T20:39:59.827Z"
+    },
+    {
+      "name": "Folio",
+      "description": "The Ultimate Creative Portfolio Nextjs Template is Here",
+      "price": 12,
+      "category": "technology",
+      "tags": [
+        "Web"
+      ],
+      "highlights": [
+        "Highlights"
+      ],
+      "format": "Web template",
+      "storage": "12 Kb",
+      "image": "/uploads/d087cc26-3bfa-4058-a0c0-20ce339dd535.png",
+      "mobileImage": "/uploads/3e02070e-ac0a-40dd-967d-0be88e6fa3eb.png",
+      "desktopImage": "/uploads/8800545f-0770-4cc8-8d02-4b006dff1c5a.png",
+      "slug": "folio",
+      "createdAt": "2024-12-17T11:11:35.144Z",
+      "userId": 1,
+      "id": 6
     }
   ]
 }

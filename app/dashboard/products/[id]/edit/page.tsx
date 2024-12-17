@@ -21,6 +21,8 @@ interface Product {
   format: string;
   storage: string;
   image?: string;
+  mobileImage?: string;
+  desktopImage?: string;
   createdAt: string;
   slug: string;
 }
@@ -39,6 +41,8 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [product, setProduct] = useState<Product | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [mobileImagePreview, setMobileImagePreview] = useState<string | null>(null);
+  const [desktopImagePreview, setDesktopImagePreview] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -58,6 +62,14 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
     fetchProduct();
   }, [params.id]);
 
+  useEffect(() => {
+    if (product) {
+      if (product.image) setImagePreview(product.image);
+      if (product.mobileImage) setMobileImagePreview(product.mobileImage);
+      if (product.desktopImage) setDesktopImagePreview(product.desktopImage);
+    }
+  }, [product]);
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -65,20 +77,52 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
     try {
       const formData = new FormData(e.currentTarget);
       const imageFile = (e.currentTarget.elements.namedItem('image') as HTMLInputElement).files?.[0];
-      
+      const mobileImageFile = (e.currentTarget.elements.namedItem('mobileImage') as HTMLInputElement).files?.[0];
+      const desktopImageFile = (e.currentTarget.elements.namedItem('desktopImage') as HTMLInputElement).files?.[0];
+
       if (imageFile) {
         // First upload the image
         const imageFormData = new FormData();
         imageFormData.append('image', imageFile);
-        
+
         const uploadResponse = await fetch('/api/upload', {
           method: 'POST',
           body: imageFormData,
         });
-        
+
         if (!uploadResponse.ok) throw new Error('Failed to upload image');
         const { imageUrl } = await uploadResponse.json();
         formData.append('image', imageUrl);
+      }
+
+      if (mobileImageFile) {
+        // First upload the mobile image
+        const mobileImageFormData = new FormData();
+        mobileImageFormData.append('image', mobileImageFile);
+
+        const mobileUploadResponse = await fetch('/api/upload', {
+          method: 'POST',
+          body: mobileImageFormData,
+        });
+
+        if (!mobileUploadResponse.ok) throw new Error('Failed to upload mobile image');
+        const { mobileImageUrl } = await mobileUploadResponse.json();
+        formData.append('mobileImage', mobileImageUrl);
+      }
+
+      if (desktopImageFile) {
+        // First upload the desktop image
+        const desktopImageFormData = new FormData();
+        desktopImageFormData.append('image', desktopImageFile);
+
+        const desktopUploadResponse = await fetch('/api/upload', {
+          method: 'POST',
+          body: desktopImageFormData,
+        });
+
+        if (!desktopUploadResponse.ok) throw new Error('Failed to upload desktop image');
+        const { desktopImageUrl } = await desktopUploadResponse.json();
+        formData.append('desktopImage', desktopImageUrl);
       }
 
       const updatedProduct = {
@@ -90,6 +134,8 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
         format: formData.get('format'),
         storage: formData.get('storage'),
         image: formData.get('image') || product?.image,
+        mobileImage: formData.get('mobileImage') || product?.mobileImage,
+        desktopImage: formData.get('desktopImage') || product?.desktopImage,
       };
 
       const response = await fetch(`/api/products/${params.id}`, {
@@ -120,8 +166,28 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
         setImagePreview(reader.result as string);
       };
       reader.readAsDataURL(file);
-    } else {
-      setImagePreview(null);
+    }
+  };
+
+  const handleMobileImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setMobileImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleDesktopImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setDesktopImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
     }
   };
 
@@ -142,7 +208,7 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
               <CardTitle className="text-foreground dark:text-white">Product not found</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-muted-foreground dark:text-gray-300">The product you&apos;re looking for doesn&apos;t exist.</p>
+              <p className="text-muted-foreground dark:text-gray-300">The product you're looking for doesn't exist.</p>
               <Button 
                 onClick={() => router.push('/dashboard')}
                 className="mt-4 bg-blue-700 hover:bg-blue-800 text-white"
@@ -267,6 +333,46 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
                     name="image"
                     accept="image/*"
                     onChange={handleImageChange}
+                    className="dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:file:bg-gray-600 dark:file:text-white dark:file:border-gray-500"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-foreground dark:text-white">Mobile Product Image</label>
+                <div className="flex items-center space-x-4">
+                  {(mobileImagePreview || product?.mobileImage) && (
+                    <img 
+                      src={mobileImagePreview || product?.mobileImage} 
+                      alt={product?.name || 'Mobile product preview'} 
+                      className="w-24 h-24 object-cover rounded-lg border dark:border-gray-700"
+                    />
+                  )}
+                  <Input
+                    type="file"
+                    name="mobileImage"
+                    accept="image/*"
+                    onChange={handleMobileImageChange}
+                    className="dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:file:bg-gray-600 dark:file:text-white dark:file:border-gray-500"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-foreground dark:text-white">Desktop Product Image</label>
+                <div className="flex items-center space-x-4">
+                  {(desktopImagePreview || product?.desktopImage) && (
+                    <img 
+                      src={desktopImagePreview || product?.desktopImage} 
+                      alt={product?.name || 'Desktop product preview'} 
+                      className="w-24 h-24 object-cover rounded-lg border dark:border-gray-700"
+                    />
+                  )}
+                  <Input
+                    type="file"
+                    name="desktopImage"
+                    accept="image/*"
+                    onChange={handleDesktopImageChange}
                     className="dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:file:bg-gray-600 dark:file:text-white dark:file:border-gray-500"
                   />
                 </div>

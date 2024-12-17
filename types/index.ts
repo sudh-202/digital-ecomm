@@ -6,13 +6,14 @@ export interface Product {
   category: string;
   tags: string[];
   highlights: string[];
-  format: string | null;
-  storage: string | null;
+  format: string;
+  storage: string;
   image: string;
-  mobileImage?: string;
-  desktopImage?: string;
+  mobileImage: string | null;
+  desktopImage: string | null;
+  userId: number;
   createdAt: string;
   slug: string;
 }
 
-export type NewProduct = Omit<Product, 'id' | 'slug' | 'createdAt'>;
+export type NewProduct = Omit<Product, 'id' | 'createdAt' | 'slug'>;

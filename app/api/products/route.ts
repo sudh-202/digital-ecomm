@@ -100,22 +100,22 @@ export async function POST(request: Request) {
       );
     }
 
-    // Process tags and highlights
-    const tags = tagsStr ? tagsStr.split(',').map(tag => tag.trim()).filter(Boolean) : [];
-    const highlights = highlightsStr ? highlightsStr.split(',').map(h => h.trim()).filter(Boolean) : [];
+    // Process tags and highlights - ensure they are always arrays
+    const tags = tagsStr?.split(',').map(tag => tag.trim()).filter(Boolean) || [];
+    const highlights = highlightsStr?.split(',').map(h => h.trim()).filter(Boolean) || [];
 
     const newProduct: NewProduct = {
       name,
-      description,
-      price: Number(price),
-      category,
+      description: description || '',
+      price: Number(priceStr) || 0,
+      category: category || '',
       format: format || null,
       storage: storage || null,
       tags,
       highlights,
-      image: imagePath,
-      mobileImage: mobileImagePath,
-      desktopImage: desktopImagePath,
+      image: imagePath || '',
+      mobileImage: mobileImagePath || null,
+      desktopImage: desktopImagePath || null,
       userId: 1,  // You should replace this with the actual user ID from your auth system
       slug,
       createdAt: new Date().toISOString()

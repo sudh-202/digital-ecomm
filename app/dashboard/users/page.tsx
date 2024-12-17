@@ -86,7 +86,8 @@ export default function UserDashboard() {
   };
 
   const getUserPurchases = (userId: number) => {
-    return purchasedItems.filter(item => item.userId === userId);
+    // For now, return all purchased items since we don't track user-specific purchases
+    return purchasedItems;
   };
 
   return (

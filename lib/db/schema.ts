@@ -71,8 +71,8 @@ export interface NewProduct {
   desktopImage: string | null;
   category: string;
   slug: string;
-  tags?: string[];
-  highlights?: string[];
+  tags: string[];
+  highlights: string[];
   format: string | null;
   storage: string | null;
   userId: number;

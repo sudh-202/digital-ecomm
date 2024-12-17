@@ -9,7 +9,7 @@ import { useCart } from "@/context/cart-context";
 import { toast } from "sonner";
 import { ProductWithUser } from "@/lib/services/product.service";
 import { getProductBySlug } from "@/lib/services/product.service";
-import { PreviewDialog } from '@/components/preview-dialog';
+import { PreviewDialog } from "@/components/preview-dialog";
 
 interface ProductInfoProps {
   params: {
@@ -50,14 +50,6 @@ export default function ProductInfo({ params }: ProductInfoProps) {
   return (
     <>
       <div className="relative">
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={() => setShowPreview(true)}
-          className="absolute top-4 right-4 z-10"
-        >
-          <Eye className="h-4 w-4" />
-        </Button>
         <main className="py-16 min-h-screen bg-gray-50 dark:bg-gray-900">
           <div className="flex flex-col gap-6">
             {/* Hero Section with Background Image */}
@@ -91,10 +83,12 @@ export default function ProductInfo({ params }: ProductInfoProps) {
                       {product.name}✅
                     </h1>
                     <p className="text-gray-600 text-xl dark:text-gray-300 mt-2">
-                      {product.description.split(' ').slice(0, 12).join(' ')}...
+                      {product.description.split(" ").slice(0, 12).join(" ")}...
                     </p>
                     <div className="mt-4">
-                      <span className="text-sm text-gray-500 dark:text-gray-400">By </span>
+                      <span className="text-sm text-gray-500 dark:text-gray-400">
+                        By{" "}
+                      </span>
                       <span className="font-medium text-blue-700 dark:text-blue-400">
                         {product.user.name} 😎
                       </span>
@@ -109,7 +103,9 @@ export default function ProductInfo({ params }: ProductInfoProps) {
                           {tag}
                         </Badge>
                       )) || (
-                        <span className="text-gray-600 dark:text-gray-300">No tags available</span>
+                        <span className="text-gray-600 dark:text-gray-300">
+                          No tags available
+                        </span>
                       )}
                     </div>
                   </div>
@@ -124,6 +120,7 @@ export default function ProductInfo({ params }: ProductInfoProps) {
                     <Button
                       variant="outline"
                       size="icon"
+                      onClick={() => setShowPreview(true)}
                       className="hover:bg-blue-50 dark:hover:bg-blue-900 dark:border-blue-700"
                     >
                       <Eye className="h-4 w-4 text-blue-600 dark:text-blue-400" />
@@ -148,7 +145,7 @@ export default function ProductInfo({ params }: ProductInfoProps) {
               <div className="py-6">
                 <div className="relative w-full overflow-hidden rounded-2xl">
                   <Image
-                    src={`/api/images/${product.image.split('/').pop()}`}
+                    src={`/api/images/${product.image.split("/").pop()}`}
                     alt={product.name}
                     width={1200}
                     height={100}
@@ -177,9 +174,7 @@ export default function ProductInfo({ params }: ProductInfoProps) {
                     <ul className="list-disc list-inside space-y-2 text-gray-600 dark:text-gray-300">
                       {product.highlights?.map((highlight, index) => (
                         <li key={index}>{highlight}</li>
-                      )) || (
-                        <li>No highlights available</li>
-                      )}
+                      )) || <li>No highlights available</li>}
                     </ul>
                   </div>
                 </div>
@@ -188,10 +183,10 @@ export default function ProductInfo({ params }: ProductInfoProps) {
           </div>
         </main>
       </div>
-      <PreviewDialog 
-        slug={params.slug} 
-        open={showPreview} 
-        onOpenChange={setShowPreview} 
+      <PreviewDialog
+        slug={params.slug}
+        open={showPreview}
+        onOpenChange={setShowPreview}
       />
     </>
   );

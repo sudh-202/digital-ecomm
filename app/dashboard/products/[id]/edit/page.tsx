@@ -178,7 +178,7 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
   }
 
   return (
-    <div className="min-h-screen p-8 bg-background dark:bg-gray-900 mt-20">
+    <div className="min-h-screen p-8 bg-background dark:bg-gray-900 pt-20 dark:text-white text-black">
       <div className="max-w-5xl mx-auto space-y-6">
         <div className="flex items-center justify-between">
           <Button

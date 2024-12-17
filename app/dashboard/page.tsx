@@ -102,7 +102,7 @@ export default function DashboardPage() {
 
   return (
     <>
-      <div className="min-h-screen p-8 bg-background dark:bg-gray-900 mt-16">
+      <div className="min-h-screen p-8 bg-background dark:bg-gray-900 pt-24">
         <div className="max-w-7xl mx-auto">
           <div className="flex justify-between items-center mb-8">
             <h1 className="text-3xl font-bold text-foreground dark:text-white">Dashboard</h1>
@@ -154,7 +154,7 @@ export default function DashboardPage() {
                                 <Trash2 className="h-4 w-4" />
                               </Button>
                             </AlertDialogTrigger>
-                            <AlertDialogContent className="bg-background dark:bg-gray-800">
+                            <AlertDialogContent className="bg-white dark:bg-gray-800 ">
                               <AlertDialogHeader>
                                 <AlertDialogTitle className="text-foreground dark:text-white">Are you sure?</AlertDialogTitle>
                                 <AlertDialogDescription className="text-muted-foreground dark:text-gray-400">
@@ -162,10 +162,10 @@ export default function DashboardPage() {
                                 </AlertDialogDescription>
                               </AlertDialogHeader>
                               <AlertDialogFooter>
-                                <AlertDialogCancel className="bg-background dark:bg-gray-700 dark:text-white">Cancel</AlertDialogCancel>
+                                <AlertDialogCancel className="bg-background dark:bg-gray-700 dark:text-white rounded-2xl">Cancel</AlertDialogCancel>
                                 <AlertDialogAction
                                   onClick={() => handleDeleteProduct(product.id)}
-                                  className="bg-red-500 hover:bg-red-600 text-white"
+                                  className="bg-red-500 hover:bg-red-600 text-white rounded-2xl"
                                 >
                                   {isDeleting === product.id ? 'Deleting...' : 'Delete'}
                                 </AlertDialogAction>

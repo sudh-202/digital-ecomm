@@ -79,8 +79,8 @@ export async function POST(request: Request) {
     const description = formData.get('description')?.toString();
     const priceStr = formData.get('price')?.toString();
     const category = formData.get('category')?.toString();
-    const tagsStr = formData.get('tags')?.toString();
-    const highlightsStr = formData.get('highlights')?.toString();
+    const tagsStr = formData.get('tags')?.toString() || '';
+    const highlightsStr = formData.get('highlights')?.toString() || '';
     const format = formData.get('format')?.toString();
     const storage = formData.get('storage')?.toString();
 
@@ -100,53 +100,19 @@ export async function POST(request: Request) {
       );
     }
 
-    // Log the incoming data for debugging
-    console.log('Incoming tags:', tagsStr);
-    console.log('Incoming highlights:', highlightsStr);
-
-    let tags: string[] = [];
-    let highlights: string[] = [];
-
-    try {
-      if (tagsStr) {
-        // Check if it's already a string array
-        if (Array.isArray(JSON.parse(tagsStr))) {
-          tags = JSON.parse(tagsStr);
-        } else {
-          // If not an array, split by comma
-          tags = tagsStr.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
-        }
-      }
-      
-      if (highlightsStr) {
-        // Check if it's already a string array
-        if (Array.isArray(JSON.parse(highlightsStr))) {
-          highlights = JSON.parse(highlightsStr);
-        } else {
-          // If not an array, split by comma
-          highlights = highlightsStr.split(',').map(highlight => highlight.trim()).filter(highlight => highlight.length > 0);
-        }
-      }
-    } catch (error) {
-      console.error('Error parsing tags or highlights:', error);
-      // If JSON parsing fails, try splitting by comma
-      if (tagsStr) {
-        tags = tagsStr.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
-      }
-      if (highlightsStr) {
-        highlights = highlightsStr.split(',').map(highlight => highlight.trim()).filter(highlight => highlight.length > 0);
-      }
-    }
+    // Process tags and highlights
+    const tags = tagsStr ? tagsStr.split(',').map(tag => tag.trim()).filter(Boolean) : [];
+    const highlights = highlightsStr ? highlightsStr.split(',').map(h => h.trim()).filter(Boolean) : [];
 
     const newProduct: NewProduct = {
       name,
       description,
       price: Number(price),
       category,
-      highlights: highlights || [],
-      tags: tags || [],
       format: format || null,
       storage: storage || null,
+      tags,
+      highlights,
       image: imagePath,
       mobileImage: mobileImagePath,
       desktopImage: desktopImagePath,

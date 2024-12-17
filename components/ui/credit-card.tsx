@@ -1,8 +1,7 @@
-'use client';
+"use client";
 
-import { motion } from 'framer-motion';
-// import { useState } from 'react';
-import Image from 'next/image';
+import { cn } from "@/lib/utils";
+import { motion } from "framer-motion";
 
 interface CreditCardProps {
   cardNumber: string;
@@ -12,68 +11,76 @@ interface CreditCardProps {
   isFlipped: boolean;
 }
 
-export function CreditCard({ cardNumber, cardHolder, expiryDate, cvv, isFlipped }: CreditCardProps) {
-  const formattedCardNumber = cardNumber
-    .replace(/\s/g, '')
-    .replace(/(\d{4})/g, '$1 ')
-    .trim();
+export const CreditCard = ({
+  cardNumber,
+  cardHolder,
+  expiryDate,
+  cvv,
+  isFlipped,
+}: CreditCardProps) => {
+  const formatCardNumber = (number: string) => {
+    const groups = number.match(/.{1,4}/g) || [];
+    return groups.join(" ");
+  };
 
   return (
-    <div className="perspective-1000 w-full max-w-[400px] h-[220px] relative mx-auto my-8">
+    <div className="perspective-1000 relative h-56 w-full">
       <motion.div
-        className="w-full h-full relative preserve-3d transition-transform duration-500"
-        animate={{ rotateY: isFlipped ? 180 : 0 }}
+        className={cn(
+          "absolute inset-0 rounded-xl transition-transform duration-500",
+          "bg-gradient-to-br from-violet-500 to-purple-500"
+        )}
+        initial={false}
+        animate={{ rotateY: isFlipped ? "180deg" : "0deg" }}
       >
-        {/* Front of the card */}
-        <div className="absolute w-full h-full backface-hidden rounded-2xl p-6 bg-gradient-to-br from-blue-600 to-blue-900 text-white shadow-xl">
-          <div className="flex justify-between items-start">
-            <div className="space-y-4">
-              <div className="h-12 w-16 relative">
-                <Image
-                  src="/chip.svg"
-                  alt="Card Chip"
-                  width={48}
-                  height={48}
-                  className="object-contain"
-                />
-              </div>
-              <div className="text-2xl tracking-wider font-medium">
-                {formattedCardNumber || '•••• •••• •••• ••••'}
+        {/* Front of card */}
+        <div className={cn("absolute inset-0 p-6", isFlipped ? "invisible" : "visible")}>
+          <div className="flex flex-col h-full">
+            <div className="flex justify-between items-start">
+              <div className="text-xl font-bold text-white">Digital Bank</div>
+              <div className="w-12 h-12">
+                <svg viewBox="0 0 24 24" className="text-white">
+                  <path
+                    fill="currentColor"
+                    d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"
+                  />
+                </svg>
               </div>
             </div>
-            <div className="text-sm font-medium opacity-75">
-              DEBIT
-            </div>
-          </div>
-          <div className="absolute bottom-6 w-[calc(100%-3rem)] flex justify-between items-end">
-            <div>
-              <div className="text-xs opacity-75 mb-1">Card Holder</div>
-              <div className="font-medium tracking-wider">
-                {cardHolder || 'YOUR NAME'}
+            <div className="flex-1 flex items-center">
+              <div className="text-2xl font-mono tracking-wider text-white">
+                {formatCardNumber(cardNumber.padEnd(16, "•"))}
               </div>
             </div>
-            <div>
-              <div className="text-xs opacity-75 mb-1">Expires</div>
-              <div className="font-medium tracking-wider">
-                {expiryDate || 'MM/YY'}
+            <div className="flex justify-between items-end text-white">
+              <div>
+                <div className="text-xs opacity-75">Card Holder</div>
+                <div className="font-medium">{cardHolder || "YOUR NAME"}</div>
+              </div>
+              <div>
+                <div className="text-xs opacity-75">Expires</div>
+                <div className="font-medium">{expiryDate || "MM/YY"}</div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Back of the card */}
-        <div className="absolute w-full h-full backface-hidden rounded-2xl bg-gradient-to-br from-blue-700 to-blue-900 text-white shadow-xl rotate-y-180">
-          <div className="h-12 bg-black/30 mt-6" />
-          <div className="px-6 mt-8">
-            <div className="bg-white/30 h-10 flex items-center justify-end px-4 rounded">
-              <div className="font-mono">{cvv || '•••'}</div>
-            </div>
-            <div className="mt-4 text-xs opacity-75 text-center">
-              This card is property of Your Bank. Misuse is criminal offense.
+        {/* Back of card */}
+        <div
+          className={cn(
+            "absolute inset-0 p-6 rotate-y-180",
+            isFlipped ? "visible" : "invisible"
+          )}
+        >
+          <div className="flex flex-col h-full">
+            <div className="h-12 bg-black/50 -mx-6 mb-4" />
+            <div className="flex items-center justify-end space-x-2">
+              <div className="flex-1 h-8 bg-white/80 rounded" />
+              <div className="font-mono text-white">{cvv || "•••"}</div>
             </div>
           </div>
         </div>
       </motion.div>
     </div>
   );
-}
+};

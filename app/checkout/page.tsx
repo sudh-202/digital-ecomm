@@ -1,295 +1,234 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useCart } from '@/context/cart-context';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent } from '@/components/ui/card';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-// import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import Image from 'next/image';
-import { toast } from 'sonner';
-import { CreditCard } from '@/components/ui/credit-card';
+import { useCart } from "@/context/cart-context";
+import { usePurchased } from "@/context/purchased-context";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useEffect, useState } from "react";
+import { CreditCard } from "@/components/ui/credit-card";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 const paymentMethods = [
   {
-    id: 'card',
-    name: 'Credit/Debit Card',
-    description: 'Pay securely with your card',
-    icon: '💳'
+    id: "card",
+    name: "Credit/Debit Card",
+    description: "Pay securely with your card",
+    icon: "💳"
   },
   {
-    id: 'paypal',
-    name: 'PayPal',
-    description: 'Pay with your PayPal account',
-    icon: '🔒'
+    id: "paypal",
+    name: "PayPal",
+    description: "Pay with your PayPal account",
+    icon: "🔒"
   },
   {
-    id: 'crypto',
-    name: 'Cryptocurrency',
-    description: 'Pay with Bitcoin, Ethereum, or other cryptocurrencies',
-    icon: '₿'
+    id: "razorpay",
+    name: "Razorpay",
+    description: "UPI, Cards, NetBanking",
+    icon: "₹"
   }
 ];
 
-export default function CheckoutPage() {
-  const { items } = useCart();
-  const [selectedPayment, setSelectedPayment] = useState('card');
-  const [isCardFlipped, setIsCardFlipped] = useState(false);
-  const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
-    email: '',
-    phone: '',
-    address: '',
-    city: '',
-    country: '',
-    postalCode: '',
-    cardNumber: '',
-    cardHolder: '',
-    expiryDate: '',
-    cvv: ''
+const CheckoutPage = () => {
+  const router = useRouter();
+  const { items, clearCart } = useCart();
+  const { addPurchasedItems } = usePurchased();
+  const [mounted, setMounted] = useState(false);
+  const [selectedMethod, setSelectedMethod] = useState("card");
+  const [isFlipped, setIsFlipped] = useState(false);
+  const [cardDetails, setCardDetails] = useState({
+    number: "",
+    holder: "",
+    expiry: "",
+    cvv: ""
   });
 
   // Calculate total from items
-  const total = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  const total = items.reduce((sum, item) => sum + (item.price * (item.quantity || 1)), 0);
 
-  const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const handlePayment = async () => {
+    // Simulate payment processing
+    toast.loading("Processing payment...");
+    
+    // Simulate API call delay
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    
+    // Success
+    toast.success("Payment successful! Redirecting to downloads...");
+    
+    // Save purchased items
+    const purchasedItems = items.map(item => ({
+      id: item.id.toString(),
+      name: item.name,
+      description: "Your purchased digital product",
+      downloadUrl: `/data/downloads/${item.id}`,
+      purchaseDate: new Date().toISOString()
+    }));
+    
+    // Add to purchased context
+    addPurchasedItems(purchasedItems);
+    
+    // Clear cart
+    clearCart();
+    
+    // Redirect to downloads page
+    setTimeout(() => {
+      router.push("/dashboard/downloads");
+    }, 1500);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    // Here you would typically handle the payment processing
-    toast.success('Payment processed successfully!');
-  };
+  if (!mounted) {
+    return null;
+  }
 
   return (
-    <main className="min-h-screen bg-[#F9FAFB] dark:bg-[#111827] pt-24 pb-12">
-      <div className="max-w-7xl mx-auto px-4">
-        <h1 className="text-3xl font-bold mb-8">Checkout</h1>
-        
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Left Column - Order Summary */}
-          <div className="lg:col-span-2 space-y-6">
-            <Card className="overflow-hidden">
-              <CardContent className="p-6">
-                <h2 className="text-xl font-semibold mb-4">Order Summary</h2>
-                <div className="space-y-4 max-h-[300px] overflow-y-auto pr-2">
-                  {items.map((item) => (
-                    <div key={item.id} className="flex items-center gap-4 p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
-                      <div className="relative w-16 h-16 rounded-lg overflow-hidden bg-gray-100">
-                        {item.image && (
-                          <Image
-                            src={`/api/images/${item.image.split('/').pop()}`}
-                            alt={item.name}
-                            fill
-                            className="object-cover"
-                          />
-                        )}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h3 className="font-medium truncate">{item.name}</h3>
-                        <p className="text-sm text-gray-500">Quantity: {item.quantity}</p>
-                      </div>
-                      <p className="font-medium whitespace-nowrap">${(item.price * item.quantity).toFixed(2)}</p>
-                    </div>
-                  ))}
-                </div>
-                <div className="border-t pt-4 mt-4">
-                  <div className="flex justify-between text-lg font-semibold">
-                    <span>Total:</span>
-                    <span>${total.toFixed(2)}</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Payment Methods */}
-            <Card>
-              <CardContent className="p-6">
-                <h2 className="text-xl font-semibold mb-4">Payment Method</h2>
-                <RadioGroup value={selectedPayment} onValueChange={setSelectedPayment} className="space-y-4">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-4xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          {/* Payment Methods */}
+          <div className="space-y-6">
+            <Card className="dark:bg-gray-800 dark:border-gray-700">
+              <CardHeader>
+                <CardTitle className="text-2xl font-bold dark:text-white">Payment Method</CardTitle>
+                <CardDescription className="dark:text-gray-300">Choose how you want to pay</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <RadioGroup
+                  value={selectedMethod}
+                  onValueChange={setSelectedMethod}
+                  className="space-y-4"
+                >
                   {paymentMethods.map((method) => (
-                    <div key={method.id} 
-                      className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
+                    <div
+                      key={method.id}
+                      className="flex items-center space-x-3 p-4 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700/50 transition-colors"
+                    >
                       <RadioGroupItem value={method.id} id={method.id} />
-                      <Label htmlFor={method.id} className="flex-1 cursor-pointer">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="font-medium">{method.name}</p>
-                            <p className="text-sm text-gray-500">{method.description}</p>
-                          </div>
-                          <div className="text-2xl">
-                            {method.icon}
+                      <Label
+                        htmlFor={method.id}
+                        className="flex flex-1 items-center justify-between cursor-pointer"
+                      >
+                        <div>
+                          <div className="font-medium dark:text-white">{method.name}</div>
+                          <div className="text-sm text-gray-500 dark:text-gray-400">
+                            {method.description}
                           </div>
                         </div>
+                        <span className="text-2xl">{method.icon}</span>
                       </Label>
                     </div>
                   ))}
                 </RadioGroup>
               </CardContent>
             </Card>
-          </div>
 
-          {/* Right Column - Payment Form */}
-          <div className="lg:col-span-1">
-            <Card className="sticky top-24">
-              <CardContent className="p-6">
-                {selectedPayment === 'card' && (
+            {selectedMethod === "card" && (
+              <Card className="dark:bg-gray-800 dark:border-gray-700">
+                <CardHeader>
+                  <CardTitle className="text-2xl font-bold dark:text-white">Card Details</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
                   <CreditCard
-                    cardNumber={formData.cardNumber}
-                    cardHolder={`${formData.firstName} ${formData.lastName}`.trim()}
-                    expiryDate={formData.expiryDate}
-                    cvv={formData.cvv}
-                    isFlipped={isCardFlipped}
+                    cardNumber={cardDetails.number}
+                    cardHolder={cardDetails.holder}
+                    expiryDate={cardDetails.expiry}
+                    cvv={cardDetails.cvv}
+                    isFlipped={isFlipped}
                   />
-                )}
-                
-                <form onSubmit={handleSubmit} className="space-y-6">
-                  <div className="space-y-4">
+                  <div className="space-y-4 mt-6">
+                    <div>
+                      <Label htmlFor="cardNumber" className="dark:text-white">Card Number</Label>
+                      <Input
+                        id="cardNumber"
+                        value={cardDetails.number}
+                        onChange={(e) => setCardDetails(prev => ({ ...prev, number: e.target.value }))}
+                        className="dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
+                        placeholder="1234 5678 9012 3456"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="cardHolder" className="dark:text-white">Card Holder</Label>
+                      <Input
+                        id="cardHolder"
+                        value={cardDetails.holder}
+                        onChange={(e) => setCardDetails(prev => ({ ...prev, holder: e.target.value }))}
+                        className="dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
+                        placeholder="JOHN DOE"
+                      />
+                    </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <Label htmlFor="firstName">First Name</Label>
+                        <Label htmlFor="expiry" className="dark:text-white">Expiry Date</Label>
                         <Input
-                          id="firstName"
-                          value={formData.firstName}
-                          onChange={(e) => handleInputChange('firstName', e.target.value)}
-                          required
-                          className="bg-white/50 dark:bg-gray-800/50"
+                          id="expiry"
+                          value={cardDetails.expiry}
+                          onChange={(e) => setCardDetails(prev => ({ ...prev, expiry: e.target.value }))}
+                          className="dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
+                          placeholder="MM/YY"
                         />
                       </div>
                       <div>
-                        <Label htmlFor="lastName">Last Name</Label>
+                        <Label htmlFor="cvv" className="dark:text-white">CVV</Label>
                         <Input
-                          id="lastName"
-                          value={formData.lastName}
-                          onChange={(e) => handleInputChange('lastName', e.target.value)}
-                          required
-                          className="bg-white/50 dark:bg-gray-800/50"
-                        />
-                      </div>
-                    </div>
-                    
-                    {selectedPayment === 'card' && (
-                      <>
-                        <div>
-                          <Label htmlFor="cardNumber">Card Number</Label>
-                          <Input
-                            id="cardNumber"
-                            value={formData.cardNumber}
-                            onChange={(e) => {
-                              const value = e.target.value.replace(/\D/g, '').slice(0, 16);
-                              handleInputChange('cardNumber', value);
-                            }}
-                            required
-                            className="bg-white/50 dark:bg-gray-800/50 font-mono"
-                            maxLength={16}
-                          />
-                        </div>
-                        <div className="grid grid-cols-2 gap-4">
-                          <div>
-                            <Label htmlFor="expiryDate">Expiry Date</Label>
-                            <Input
-                              id="expiryDate"
-                              placeholder="MM/YY"
-                              value={formData.expiryDate}
-                              onChange={(e) => {
-                                const value = e.target.value.replace(/\D/g, '').slice(0, 4);
-                                const formatted = value.length > 2 ? `${value.slice(0, 2)}/${value.slice(2)}` : value;
-                                handleInputChange('expiryDate', formatted);
-                              }}
-                              required
-                              className="bg-white/50 dark:bg-gray-800/50"
-                            />
-                          </div>
-                          <div>
-                            <Label htmlFor="cvv">CVV</Label>
-                            <Input
-                              id="cvv"
-                              type="text"
-                              maxLength={4}
-                              value={formData.cvv}
-                              onChange={(e) => handleInputChange('cvv', e.target.value.replace(/\D/g, '').slice(0, 4))}
-                              required
-                              className="bg-white/50 dark:bg-gray-800/50"
-                              onFocus={() => setIsCardFlipped(true)}
-                              onBlur={() => setIsCardFlipped(false)}
-                            />
-                          </div>
-                        </div>
-                      </>
-                    )}
-
-                    <div>
-                      <Label htmlFor="email">Email</Label>
-                      <Input
-                        id="email"
-                        type="email"
-                        value={formData.email}
-                        onChange={(e) => handleInputChange('email', e.target.value)}
-                        required
-                        className="bg-white/50 dark:bg-gray-800/50"
-                      />
-                    </div>
-
-                    <div>
-                      <Label htmlFor="phone">Phone</Label>
-                      <Input
-                        id="phone"
-                        type="tel"
-                        value={formData.phone}
-                        onChange={(e) => handleInputChange('phone', e.target.value)}
-                        required
-                        className="bg-white/50 dark:bg-gray-800/50"
-                      />
-                    </div>
-
-                    <div>
-                      <Label htmlFor="address">Address</Label>
-                      <Input
-                        id="address"
-                        value={formData.address}
-                        onChange={(e) => handleInputChange('address', e.target.value)}
-                        required
-                        className="bg-white/50 dark:bg-gray-800/50"
-                      />
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="city">City</Label>
-                        <Input
-                          id="city"
-                          value={formData.city}
-                          onChange={(e) => handleInputChange('city', e.target.value)}
-                          required
-                          className="bg-white/50 dark:bg-gray-800/50"
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="postalCode">Postal Code</Label>
-                        <Input
-                          id="postalCode"
-                          value={formData.postalCode}
-                          onChange={(e) => handleInputChange('postalCode', e.target.value)}
-                          required
-                          className="bg-white/50 dark:bg-gray-800/50"
+                          id="cvv"
+                          value={cardDetails.cvv}
+                          onChange={(e) => setCardDetails(prev => ({ ...prev, cvv: e.target.value }))}
+                          onFocus={() => setIsFlipped(true)}
+                          onBlur={() => setIsFlipped(false)}
+                          className="dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
+                          placeholder="123"
                         />
                       </div>
                     </div>
                   </div>
+                </CardContent>
+              </Card>
+            )}
+          </div>
 
-                  <Button type="submit" className="w-full bg-blue-700 hover:bg-blue-800">
-                    Pay ${total.toFixed(2)}
-                  </Button>
-                </form>
+          {/* Order Summary */}
+          <div>
+            <Card className="dark:bg-gray-800 dark:border-gray-700 sticky top-8">
+              <CardHeader>
+                <CardTitle className="text-2xl font-bold dark:text-white">Order Summary</CardTitle>
+                <CardDescription className="dark:text-gray-300">{items.length} items in cart</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {items.map((item) => (
+                  <div key={item.id} className="flex justify-between dark:text-white">
+                    <span>{item.name}</span>
+                    <span>${item.price.toFixed(2)}</span>
+                  </div>
+                ))}
+                <div className="border-t dark:border-gray-700 pt-4">
+                  <div className="flex justify-between font-bold dark:text-white">
+                    <span>Total</span>
+                    <span>${total.toFixed(2)}</span>
+                  </div>
+                </div>
               </CardContent>
+              <CardFooter>
+                <Button 
+                  onClick={handlePayment}
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                >
+                  Pay ${total.toFixed(2)}
+                </Button>
+              </CardFooter>
             </Card>
           </div>
         </div>
       </div>
-    </main>
+    </div>
   );
-}
+};
+
+export default CheckoutPage;

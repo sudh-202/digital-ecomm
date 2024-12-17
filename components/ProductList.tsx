@@ -2,9 +2,9 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import type { ProductWithUser } from "../lib/services/product.service";
-import { User, Filter } from "lucide-react";
+import { User, Filter, Download } from "lucide-react";
 import { Button } from "./ui/button";
 import { useCart } from "@/context/cart-context";
 import { toast } from "sonner";
@@ -12,6 +12,7 @@ import { useRouter } from "next/navigation";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "./ui/sheet";
 import { Checkbox } from "./ui/checkbox";
 import { Label } from "./ui/label";
+import { usePurchased } from "@/context/purchased-context";
 
 export default function ProductList() {
   const [products, setProducts] = useState<ProductWithUser[]>([]);
@@ -20,6 +21,7 @@ export default function ProductList() {
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const { addToCart } = useCart();
+  const { isPurchased } = usePurchased();
   const router = useRouter();
 
   const categories = [
@@ -122,6 +124,15 @@ export default function ProductList() {
   const handleAddToCart = (product: ProductWithUser) => {
     addToCart(product);
     toast.success("Added to cart!");
+  };
+
+  const handleDownload = (product: ProductWithUser) => {
+    toast.success(`Starting download: ${product.name}`);
+    
+    // Simulate download start
+    setTimeout(() => {
+      window.open(`/data/downloads/${product.id}`, "_blank");
+    }, 1000);
   };
 
   const handleCardClick = (product: ProductWithUser) => {
@@ -266,21 +277,28 @@ export default function ProductList() {
                   {/* <p className="text-gray-600 dark:text-gray-300 text-sm mb-4">
                     {product.description}
                   </p> */}
-                  <div className="flex justify-between items-center">
-                    <span className="text-lg font-bold text-blue-600 dark:text-blue-400">
-                      ${product.price}
-                    </span>
-                    <Button 
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleAddToCart(product);
-                      }}
-                      variant="outline"
-                      className="dark:bg-white/80  backdrop-blur-sm rounded-2xl"
-                    >
-                      Add to Cart
-                    </Button>
-                  </div>
+                  <CardFooter className="flex justify-between items-center">
+                    <div className="text-lg font-semibold">${product.price}</div>
+                    <div className="space-x-2">
+                      {isPurchased(product.id.toString()) ? (
+                        <Button
+                          onClick={() => handleDownload(product)}
+                          className="dark:bg-white/80 backdrop-blur-sm rounded-2xl gap-2"
+                        >
+                          <Download className="h-4 w-4" />
+                          Download
+                        </Button>
+                      ) : (
+                        <Button
+                          onClick={() => handleAddToCart(product)}
+                          variant="outline"
+                          className="dark:bg-white/80 backdrop-blur-sm rounded-2xl"
+                        >
+                          Add to Cart
+                        </Button>
+                      )}
+                    </div>
+                  </CardFooter>
                 </CardContent>
               </Card>
             ))}

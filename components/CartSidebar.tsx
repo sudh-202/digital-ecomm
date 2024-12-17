@@ -37,12 +37,12 @@ export function CartSidebar() {
         <div className="mt-8 space-y-6 dark:text-white text-black ">
           {items.map((item) => (
             <div key={item.id} className="flex items-center space-x-4">
-              <div className="relative h-16 w-16">
+              <div className="relative w-20 h-20 rounded overflow-hidden">
                 <Image
-                  src={item.image}
+                  src={`/data/uploads/${item.image}`}
                   alt={item.name}
                   fill
-                  className="object-cover rounded "
+                  className="object-cover rounded"
                 />
               </div>
               <div className="flex-1 space-y-4">

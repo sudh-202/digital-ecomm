@@ -14,6 +14,10 @@ export const navLinks = [
   {
     label: "Dashboard",
     route: "/dashboard"
+  },
+  {
+    label: "Users",
+    route: "/dashboard/users"
   }
 ];
 

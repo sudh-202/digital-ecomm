@@ -7,7 +7,7 @@ import CometEffect from "./ui/comet-effects";
 const Hero = () => {
   return (
     <div className="relative w-full">
-      <section className="relative h-[65vh] flex items-start justify-between pt-24 px-6 md:px-10 overflow-hidden bg-gray-50 dark:bg-gray-900">
+      <section className="relative lg:h-[65vh] flex items-start justify-between pt-24 px-6 md:px-10 overflow-hidden bg-gray-50 dark:bg-gray-900">
         {/* Background Effects */}
         <GradientBackground />
         <CometEffect />

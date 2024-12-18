@@ -296,9 +296,10 @@ export default function NewProductPage() {
                         value={description}
                         onChange={setDescription}
                         placeholder="Write a compelling description for your product..."
-                        className={cn(
-                          errors.description && "border-red-500 focus:ring-red-500"
-                        )}
+                        style={{
+                          border: errors.description ? '1px solid rgb(239, 68, 68)' : undefined,
+                          boxShadow: errors.description ? '0 0 0 1px rgb(239, 68, 68)' : undefined
+                        }}
                       />
                       <div className="text-xs text-gray-500 dark:text-gray-400">
                         Tips for a great description:

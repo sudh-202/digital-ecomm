@@ -9,9 +9,10 @@ interface RichTextEditorProps {
   value: string;
   onChange: (value: string) => void;
   placeholder?: string;
+  style?: React.CSSProperties;
 }
 
-export function RichTextEditor({ value, onChange, placeholder }: RichTextEditorProps) {
+export function RichTextEditor({ value, onChange, placeholder, style }: RichTextEditorProps) {
   const editorRef = useRef<HTMLDivElement>(null);
   const [isFocused, setIsFocused] = useState(false);
   const [isEmpty, setIsEmpty] = useState(!value);
@@ -104,6 +105,7 @@ export function RichTextEditor({ value, onChange, placeholder }: RichTextEditorP
             isFocused ? "border-primary" : "border-input",
             "focus:ring-2 focus:ring-primary focus:ring-offset-2 dark:focus:ring-offset-gray-900"
           )}
+          style={style}
           dangerouslySetInnerHTML={{ __html: value }}
           onInput={updateValue}
           onFocus={() => setIsFocused(true)}

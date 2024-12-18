@@ -1,18 +1,17 @@
 import {
-  FileText,
-  FileImage,
-  FileVideo,
-  FileAudio,
-  FileArchive,
-  FileCode,
-  FilePdf,
-  FileSpreadsheet,
   File,
-  type LucideIcon
-} from 'lucide-react';
+  FileArchive,
+  FileAudio,
+  FileCode,
+  FileImage,
+  FileText as FilePdf,
+  FileSpreadsheet,
+  FileText,
+  FileVideo
+} from "lucide-react";
 
 type FileIconMapping = {
-  [key: string]: LucideIcon;
+  [key: string]: any;
 };
 
 // Map file extensions to icons
@@ -72,7 +71,7 @@ const fileIconMap: FileIconMapping = {
   'json': FileCode,
 };
 
-export function getFileIcon(filename: string): LucideIcon {
+export function getFileIcon(filename: string): any {
   const extension = filename.split('.').pop()?.toLowerCase() || '';
   return fileIconMap[extension] || File;
 }

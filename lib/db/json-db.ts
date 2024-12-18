@@ -1,6 +1,7 @@
 import { promises as fs } from 'fs';
 import path from 'path';
 import { Product, User, ProductWithUser } from './schema';
+import { existsSync } from 'fs';
 
 const DATA_DIR = path.join(process.cwd(), 'data');
 const PRODUCTS_FILE = path.join(DATA_DIR, 'products.json');
@@ -48,7 +49,7 @@ class JsonDatabase {
 
       this.data.products = jsonDataProducts.products.map(product => ({
         ...product,
-        slug: product.slug || createSlug(product.name)
+        slug: product.slug || (product.name ? createSlug(product.name) : '')
       }));
       this.data.users = jsonDataUsers.users || [];
     } catch (error) {
@@ -104,7 +105,7 @@ class JsonDatabase {
       ...data,
       id: newId,
       createdAt: new Date().toISOString(),
-      slug: createSlug(data.name)
+      slug: data.name ? createSlug(data.name) : ''
     };
     
     this.data.products.push(product);
@@ -152,7 +153,7 @@ export async function readProductsFromFile(): Promise<Product[]> {
     const jsonData: ProductsData = JSON.parse(data);
     return jsonData.products.map(product => ({
       ...product,
-      slug: product.slug || createSlug(product.name)
+      slug: product.slug || (product.name ? createSlug(product.name) : '')
     }));
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
@@ -188,8 +189,9 @@ export async function addProductToFile(product: Omit<Product, 'id' | 'createdAt'
       desktopImage: product.desktopImage || null,
       tags: product.tags || [],
       highlights: product.highlights || [],
+      attachments: product.attachments || [],
       createdAt: new Date().toISOString(),
-      slug: createSlug(product.name)
+      slug: product.name ? createSlug(product.name) : ''
     };
     
     products.push(newProduct);

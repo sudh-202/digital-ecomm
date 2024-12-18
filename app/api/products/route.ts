@@ -5,12 +5,43 @@ import {
   addProductToFile 
 } from '@/lib/db/json-db';
 import { writeFile, mkdir } from 'fs/promises';
+import { existsSync } from 'fs';
 import { join } from 'path';
 import { extname } from 'path';
 import { v4 as uuidv4 } from 'uuid';
-import type { NewProduct } from '@/lib/db/schema';
+import type { NewProduct, Product } from '@/lib/db/schema';
+import sharp from 'sharp';
+import AdmZip from 'adm-zip';
 
-export async function GET() {
+type AttachmentFile = {
+  originalName: string;
+  fileName: string;
+  type: string;
+  size: number;
+  url: string;
+  name: string;
+};
+
+async function convertToWebp(buffer: Buffer): Promise<Buffer> {
+  return sharp(buffer)
+    .webp({ quality: 80 })
+    .toBuffer();
+}
+
+async function compressAsset(buffer: Buffer): Promise<Buffer> {
+  const zip = new AdmZip(buffer);
+  const compressedZip = new AdmZip();
+  
+  zip.getEntries().forEach((entry: AdmZip.IZipEntry) => {
+    if (!entry.isDirectory) {
+      compressedZip.addFile(entry.entryName, entry.getData(), '', 9); // Maximum compression
+    }
+  });
+  
+  return compressedZip.toBuffer();
+}
+
+export async function GET(): Promise<NextResponse<Product[] | { error: string }>> {
   try {
     const products = await readProductsFromFile();
     return NextResponse.json(products);
@@ -23,106 +54,120 @@ export async function GET() {
   }
 }
 
-export async function POST(request: Request) {
+export async function POST(request: Request): Promise<NextResponse<NewProduct | { error: string }>> {
   try {
     const formData = await request.formData();
+    const title = formData.get('title') as string;
+    const name = formData.get('name') as string;
+    const description = formData.get('description') as string;
+    const price = Number(formData.get('price'));
+    const category = formData.get('category') as string;
+    const tags = (formData.get('tags') as string)?.split(',').filter(Boolean) || [];
+    const highlights = (formData.get('highlights') as string)?.split(',').filter(Boolean) || [];
     
-    // Handle file uploads with proper naming
-    const uploadDir = join(process.cwd(), 'data', 'uploads');
-    await mkdir(uploadDir, { recursive: true });
-
-    // Generate slug from name
-    const name = formData.get('name')?.toString();
-    if (!name) {
-      return NextResponse.json({ error: 'Product name is required' }, { status: 400 });
-    }
-
-    const slug = name.toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/(^-|-$)/g, '');
-
-    let imagePath = null;
-    let mobileImagePath = null;
-    let desktopImagePath = null;
-
-    // Handle main image
-    const mainImage = formData.get('image') as File;
-    if (mainImage) {
-      const ext = extname(mainImage.name);
-      const mainImageFilename = `${slug}-main.webp`;
-      const mainImageBuffer = Buffer.from(await mainImage.arrayBuffer());
-      await writeFile(join(uploadDir, mainImageFilename), mainImageBuffer);
-      imagePath = `/uploads/${mainImageFilename}`;
-    }
-
-    // Handle mobile image
-    const mobileImage = formData.get('mobileImage') as File;
-    if (mobileImage) {
-      const ext = extname(mobileImage.name);
-      const mobileImageFilename = `${slug}-mobile.webp`;
-      const mobileImageBuffer = Buffer.from(await mobileImage.arrayBuffer());
-      await writeFile(join(uploadDir, mobileImageFilename), mobileImageBuffer);
-      mobileImagePath = `/uploads/${mobileImageFilename}`;
-    }
-
-    // Handle desktop image
-    const desktopImage = formData.get('desktopImage') as File;
-    if (desktopImage) {
-      const ext = extname(desktopImage.name);
-      const desktopImageFilename = `${slug}-desktop.webp`;
-      const desktopImageBuffer = Buffer.from(await desktopImage.arrayBuffer());
-      await writeFile(join(uploadDir, desktopImageFilename), desktopImageBuffer);
-      desktopImagePath = `/uploads/${desktopImageFilename}`;
-    }
-
-    // Create new product object
-    const description = formData.get('description')?.toString();
-    const priceStr = formData.get('price')?.toString();
-    const category = formData.get('category')?.toString();
-    const tagsStr = formData.get('tags')?.toString() || '';
-    const highlightsStr = formData.get('highlights')?.toString() || '';
-    const format = formData.get('format')?.toString();
-    const storage = formData.get('storage')?.toString();
-
     // Validate required fields
-    if (!description || !priceStr || !category || !imagePath) {
+    if (!title || !name || !description || !price || !category) {
       return NextResponse.json(
         { error: 'Missing required fields' },
         { status: 400 }
       );
     }
 
-    const price = parseInt(priceStr);
-    if (isNaN(price)) {
-      return NextResponse.json(
-        { error: 'Invalid price' },
-        { status: 400 }
-      );
+    // Create directories if they don't exist
+    const assetsDir = join(process.cwd(), 'data', 'assets');
+    const uploadsDir = join(process.cwd(), 'data', 'uploads');
+    await mkdir(assetsDir, { recursive: true });
+    await mkdir(uploadsDir, { recursive: true });
+
+    // Process main product images
+    const imageUrls: { [key: string]: string } = {};
+    
+    // Handle main product images with WebP conversion
+    const mainImage = formData.get('image') as File;
+    const mobileImage = formData.get('mobileImage') as File;
+    const desktopImage = formData.get('desktopImage') as File;
+
+    if (mainImage) {
+      const buffer = Buffer.from(await mainImage.arrayBuffer());
+      const webpBuffer = await convertToWebp(buffer);
+      const fileName = `${uuidv4()}.webp`;
+      await writeFile(join(uploadsDir, fileName), webpBuffer);
+      imageUrls.image = `/uploads/${fileName}`;
     }
 
-    // Process tags and highlights - ensure they are always arrays
-    const tags = tagsStr?.split(',').map(tag => tag.trim()).filter(Boolean) || [];
-    const highlights = highlightsStr?.split(',').map(h => h.trim()).filter(Boolean) || [];
+    if (mobileImage) {
+      const buffer = Buffer.from(await mobileImage.arrayBuffer());
+      const webpBuffer = await convertToWebp(buffer);
+      const fileName = `${uuidv4()}.webp`;
+      await writeFile(join(uploadsDir, fileName), webpBuffer);
+      imageUrls.mobileImage = `/uploads/${fileName}`;
+    }
 
-    const newProduct: NewProduct = {
+    if (desktopImage) {
+      const buffer = Buffer.from(await desktopImage.arrayBuffer());
+      const webpBuffer = await convertToWebp(buffer);
+      const fileName = `${uuidv4()}.webp`;
+      await writeFile(join(uploadsDir, fileName), webpBuffer);
+      imageUrls.desktopImage = `/uploads/${fileName}`;
+    }
+
+    // Handle attachments with compression
+    const attachments = formData.getAll('attachments') as File[];
+    const processedAttachments: AttachmentFile[] = [];
+
+    for (const file of attachments) {
+      const buffer = Buffer.from(await file.arrayBuffer());
+      let fileName = `${uuidv4()}${extname(file.name)}`;
+      const originalName = file.name;
+      
+      // Determine file type and apply appropriate processing
+      const isZip = ['.zip', '.rar', '.7z'].includes(extname(file.name).toLowerCase());
+      const destinationDir = isZip ? assetsDir : uploadsDir;
+      const destinationType = isZip ? 'assets' : 'uploads';
+      
+      // Compress if it's a zip file, convert to webp if it's an image
+      let processedBuffer = buffer;
+      if (isZip) {
+        processedBuffer = await compressAsset(buffer);
+      } else if (file.type.startsWith('image/')) {
+        processedBuffer = await convertToWebp(buffer);
+        fileName = fileName.replace(extname(fileName), '.webp');
+      }
+      
+      await writeFile(join(destinationDir, fileName), processedBuffer);
+      
+      processedAttachments.push({
+        originalName,
+        fileName,
+        type: file.type,
+        size: processedBuffer.length,
+        url: `/${destinationType}/${fileName}`,
+        name: originalName
+      });
+    }
+
+    // Create the product object
+    const product: NewProduct = {
+      title,
       name,
-      description: description || '',
-      price: Number(priceStr) || 0,
-      category: category || '',
-      format: format || null,
-      storage: storage || null,
+      description,
+      price,
+      category,
       tags,
       highlights,
-      image: imagePath || '',
-      mobileImage: mobileImagePath || null,
-      desktopImage: desktopImagePath || null,
-      userId: 1,  // You should replace this with the actual user ID from your auth system
-      slug,
-      createdAt: new Date().toISOString()
+      image: imageUrls.image || '',
+      mobileImage: imageUrls.mobileImage || null,
+      desktopImage: imageUrls.desktopImage || null,
+      format: 'digital',
+      storage: 'cloud',
+      userId: 1,
+      slug: `${name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${uuidv4().slice(0, 8)}`,
+      attachments: processedAttachments
     };
 
-    const product = await addProductToFile(newProduct);
-    
+    // Add to products.json
+    await addProductToFile(product);
+
     return NextResponse.json(product);
   } catch (error) {
     console.error('Error creating product:', error);
@@ -133,7 +178,7 @@ export async function POST(request: Request) {
   }
 }
 
-export async function PUT(request: Request) {
+export async function PUT(request: Request): Promise<NextResponse<{ success: boolean } | { error: string }>> {
   try {
     const { products } = await request.json();
     await writeProductsToFile(products);

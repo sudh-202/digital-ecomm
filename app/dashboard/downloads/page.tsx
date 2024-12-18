@@ -24,14 +24,7 @@ export default function DownloadsPage() {
   }, []);
 
   const handleDownload = (item: DownloadItem) => {
-    const loadingToast = toast.loading(`Preparing download: ${item.name}`);
-    
-    // Simulate download preparation
-    setTimeout(() => {
-      toast.dismiss(loadingToast);
-      window.open(item.downloadUrl, "_blank");
-      toast.success(`Download started: ${item.name}`);
-    }, 1000);
+    toast.success(`Downloading: ${item.name}`);
   };
 
   if (!mounted) return null;
@@ -57,13 +50,15 @@ export default function DownloadsPage() {
                 <CardHeader>
                   <CardTitle className="text-xl font-semibold dark:text-white flex justify-between items-center">
                     {item.name}
-                    <Button
+                    <a
+                      href={item.downloadUrl}
+                      download
                       onClick={() => handleDownload(item)}
-                      className="bg-green-600 hover:bg-green-700 text-white gap-2"
+                      className="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-md gap-2"
                     >
                       <Download className="h-4 w-4" />
                       Download
-                    </Button>
+                    </a>
                   </CardTitle>
                   <CardDescription className="dark:text-gray-300 flex items-center gap-2">
                     <Calendar className="h-4 w-4" />

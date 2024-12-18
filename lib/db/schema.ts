@@ -15,6 +15,7 @@ export const users = sqliteTable('users', {
 
 export const products = sqliteTable('products', {
   id: integer('id').primaryKey({ autoIncrement: true }),
+  title: text('title').notNull(),
   name: text('name').notNull(),
   description: text('description').notNull(),
   price: integer('price').notNull(),
@@ -29,6 +30,7 @@ export const products = sqliteTable('products', {
   storage: text('storage'),
   userId: integer('user_id').notNull().references(() => users.id),
   createdAt: text('created_at').default(sql`CURRENT_TIMESTAMP`),
+  attachments: text('attachments', { mode: 'json' }).$type<Array<{ name: string; size: number; type: string; url: string }>>(),
 });
 
 export interface User {
@@ -41,6 +43,7 @@ export interface User {
 
 export interface Product {
   id: number;
+  title: string;
   name: string;
   description: string;
   price: number;
@@ -55,6 +58,12 @@ export interface Product {
   storage: string | null;
   userId: number;
   createdAt: string;
+  attachments?: Array<{
+    name: string;
+    size: number;
+    type: string;
+    url: string;
+  }>;
 }
 
 export interface ProductWithUser extends Product {
@@ -63,6 +72,7 @@ export interface ProductWithUser extends Product {
 
 export interface NewProduct {
   id?: number;
+  title: string;
   name: string;
   description: string;
   price: number;
@@ -77,4 +87,10 @@ export interface NewProduct {
   storage: string | null;
   userId: number;
   createdAt?: string;
+  attachments?: Array<{
+    name: string;
+    size: number;
+    type: string;
+    url: string;
+  }>;
 }

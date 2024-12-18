@@ -3,14 +3,21 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { Heart, Eye, ShoppingCart } from "lucide-react";
+import {
+  Heart,
+  Eye,
+  ShoppingCart,
+  ArrowLeft,
+  FileIcon,
+  ArrowDown,
+} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useCart } from "@/context/cart-context";
 import { toast } from "sonner";
 import { ProductWithUser } from "@/lib/services/product.service";
 import { getProductBySlug } from "@/lib/services/product.service";
 import { PreviewDialog } from "@/components/preview-dialog";
-import DOMPurify from 'isomorphic-dompurify';
+import DOMPurify from "isomorphic-dompurify";
 
 interface ProductInfoProps {
   params: {
@@ -84,7 +91,12 @@ export default function ProductInfo({ params }: ProductInfoProps) {
                       {product.name}✅
                     </h1>
                     <p className="text-gray-600 text-xl dark:text-gray-300 mt-2">
-                      {product.description.replace(/<[^>]*>/g, '').split(" ").slice(0, 12).join(" ")}...
+                      {product.description
+                        .replace(/<[^>]*>/g, "")
+                        .split(" ")
+                        .slice(0, 12)
+                        .join(" ")}
+                      ...
                     </p>
                     <div className="mt-4">
                       <span className="text-sm text-gray-500 dark:text-gray-400">
@@ -164,10 +176,10 @@ export default function ProductInfo({ params }: ProductInfoProps) {
                     <h2 className="text-3xl font-semibold mb-4 text-gray-800 dark:text-white">
                       Overview
                     </h2>
-                    <div 
+                    <div
                       className="text-gray-600 dark:text-gray-300 prose dark:prose-invert max-w-none"
-                      dangerouslySetInnerHTML={{ 
-                        __html: DOMPurify.sanitize(product.description)
+                      dangerouslySetInnerHTML={{
+                        __html: DOMPurify.sanitize(product.description),
                       }}
                     />
                   </div>
@@ -180,6 +192,63 @@ export default function ProductInfo({ params }: ProductInfoProps) {
                         <li key={index}>✅ {highlight}</li>
                       )) || <li>No highlights available</li>}
                     </ul>
+                    {product.attachments && product.attachments.length > 0 && (
+                      <section className="py-8">
+                        <div className="container mx-auto px-4">
+                          <h2 className="text-2xl font-bold mb-4">
+                            Files & Resources
+                          </h2>
+                          <div className="grid gap-4">
+                            {product.attachments.map((file, index) => (
+                              <div
+                                key={index}
+                                className="flex items-center justify-between p-4 bg-white rounded-lg shadow"
+                              >
+                                <div className="flex items-center gap-4">
+                                  <div className="p-2 bg-gray-100 rounded">
+                                    <FileIcon className="h-6 w-6 text-gray-600" />
+                                  </div>
+                                  <div>
+                                    <h3 className="font-medium">{file.name}</h3>
+                                    <p className="text-sm text-gray-500">
+                                      {(file.size / (1024 * 1024)).toFixed(2)}{" "}
+                                      MB
+                                    </p>
+                                  </div>
+                                </div>
+                                <button
+                                  onClick={async () => {
+                                    try {
+                                      const filename = file.url.split('/').pop();
+                                      const response = await fetch(`/api/assets/${filename}`);
+                                      if (!response.ok) throw new Error('Download failed');
+                                      
+                                      const blob = await response.blob();
+                                      const url = window.URL.createObjectURL(blob);
+                                      const link = document.createElement('a');
+                                      link.href = url;
+                                      link.download = file.name;
+                                      document.body.appendChild(link);
+                                      link.click();
+                                      document.body.removeChild(link);
+                                      window.URL.revokeObjectURL(url);
+                                      toast.success(`Downloading: ${file.name}`);
+                                    } catch (error) {
+                                      console.error('Download error:', error);
+                                      toast.error('Failed to download file');
+                                    }
+                                  }}
+                                  className="inline-flex items-center px-4 py-2 text-sm font-medium text-blue-600 hover:text-blue-800"
+                                >
+                                  Download
+                                  <ArrowDown className="ml-2 h-4 w-4" />
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </section>
+                    )}
                   </div>
                 </div>
               </div>
@@ -187,6 +256,7 @@ export default function ProductInfo({ params }: ProductInfoProps) {
           </div>
         </main>
       </div>
+
       <PreviewDialog
         slug={params.slug}
         open={showPreview}

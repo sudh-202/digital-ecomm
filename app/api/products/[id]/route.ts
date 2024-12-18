@@ -3,6 +3,8 @@ import { readProductsFromFile, writeProductsToFile, getProductByIdFromFile, upda
 import { unlink, writeFile, mkdir } from 'fs/promises';
 import { join } from 'path';
 import { v4 as uuidv4 } from 'uuid';
+import { existsSync } from 'fs';
+import path from 'path';
 
 export async function GET(
   request: Request,
@@ -34,7 +36,9 @@ export async function PUT(
   { params }: { params: { id: string } }
 ) {
   try {
-    const productData = await request.json();
+    const formData = await request.formData();
+    const productData = JSON.parse(formData.get('product') as string);
+    const files = formData.getAll('attachments') as File[];
     
     // Get the current product to get its slug
     const currentProduct = await getProductByIdFromFile(parseInt(params.id));
@@ -46,32 +50,68 @@ export async function PUT(
       );
     }
 
-    // Validate required fields
-    const { name, description, category } = productData;
-    if (!name?.trim() || !description?.trim() || !category?.trim()) {
-      const missingFields = [];
-      if (!name?.trim()) missingFields.push('name');
-      if (!description?.trim()) missingFields.push('description');
-      if (!category?.trim()) missingFields.push('category');
-
-      console.error('Missing required fields:', missingFields);
-      return NextResponse.json(
-        { error: `Missing required fields: ${missingFields.join(', ')}` },
-        { status: 400 }
-      );
+    // Create assets directory if it doesn't exist
+    const baseAssetsDir = path.join(process.cwd(), 'data', 'assets');
+    if (!existsSync(baseAssetsDir)) {
+      await mkdir(baseAssetsDir, { recursive: true });
     }
 
-    // Update the product
-    const product = await updateProductInFile(parseInt(params.id), productData);
-    if (!product) {
-      console.error('Failed to update product in file');
-      return NextResponse.json(
-        { error: 'Failed to update product' },
-        { status: 500 }
-      );
+    // Create product-specific directory
+    const sanitizedTitle = productData.name
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g, '-')
+      .replace(/-+/g, '-');
+    const productAssetsDir = path.join(baseAssetsDir, sanitizedTitle);
+    if (!existsSync(productAssetsDir)) {
+      await mkdir(productAssetsDir, { recursive: true });
     }
+
+    // Handle file uploads
+    const attachments = [];
+    for (const file of files) {
+      const buffer = Buffer.from(await file.arrayBuffer());
+      const originalName = file.name;
+      const ext = path.extname(originalName);
+      const baseName = path.basename(originalName, ext);
+      let fileName = `${uuidv4()}-${baseName}${ext}`;
+      const filePath = path.join(productAssetsDir, fileName);
+      
+      // Compress the file if it's compressible
+      if (['.zip', '.rar', '.7z'].includes(ext.toLowerCase())) {
+        // File is already compressed, just save it
+        await writeFile(filePath, buffer);
+      } else {
+        // Create a zip file containing the original file
+        const AdmZip = require('adm-zip');
+        const zip = new AdmZip();
+        zip.addFile(originalName, buffer);
+        await new Promise((resolve, reject) => {
+          zip.writeZip(filePath + '.zip', (error: Error) => {
+            if (error) reject(error);
+            else resolve(true);
+          });
+        });
+        // Update the fileName to include .zip extension
+        fileName = fileName + '.zip';
+      }
+      
+      attachments.push({
+        name: originalName,
+        size: file.size,
+        type: file.type,
+        url: `/assets/${sanitizedTitle}/${fileName}`
+      });
+    }
+
+    // Update product with attachments
+    const updatedProduct = {
+      ...productData,
+      attachments: [...(currentProduct.attachments || []), ...attachments]
+    };
+
+    await updateProductInFile(parseInt(params.id), updatedProduct);
     
-    return NextResponse.json(product);
+    return NextResponse.json(updatedProduct);
   } catch (error) {
     console.error('Error updating product:', error);
     return NextResponse.json(
@@ -98,21 +138,34 @@ export async function DELETE(
       );
     }
 
-    // Delete product images if they exist
-    const imagesToDelete = [
-      productToDelete.image,
-      productToDelete.mobileImage,
-      productToDelete.desktopImage
+    // Delete all associated files
+    const filesToDelete = [
+      // Main images
+      productToDelete.image && { path: productToDelete.image, type: 'uploads' },
+      productToDelete.mobileImage && { path: productToDelete.mobileImage, type: 'uploads' },
+      productToDelete.desktopImage && { path: productToDelete.desktopImage, type: 'uploads' },
+      // Attachments
+      ...(productToDelete.attachments || []).map(attachment => ({
+        path: attachment.url,
+        type: attachment.url.startsWith('/assets') ? 'assets' : 'uploads'
+      }))
     ].filter(Boolean);
 
-    for (const imagePath of imagesToDelete) {
+    // Delete all files
+    for (const file of filesToDelete) {
       try {
-        if (imagePath && typeof imagePath === 'string') {
-          const imageFilename = imagePath.split('/uploads/')[1];
-          await unlink(join(process.cwd(), 'data', 'uploads', imageFilename));
+        if (typeof file === 'object' && file !== null && 'path' in file && 'type' in file) {
+          const filename = file.path.split(`/${file.type}/`)[1];
+          if (filename) {
+            const filePath = join(process.cwd(), 'data', file.type, filename);
+            if (existsSync(filePath)) {
+              await unlink(filePath);
+              console.log(`Deleted file: ${filePath}`);
+            }
+          }
         }
       } catch (error) {
-        console.error('Error deleting image file:', error);
+        console.error(`Error deleting file: ${typeof file === 'object' ? file?.path : 'unknown'}`, error);
       }
     }
 
@@ -120,7 +173,10 @@ export async function DELETE(
     const updatedProducts = products.filter(p => p.id !== productId);
     await writeProductsToFile(updatedProducts);
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ 
+      success: true,
+      message: 'Product and all associated files deleted successfully'
+    });
   } catch (error) {
     console.error('Error deleting product:', error);
     return NextResponse.json(

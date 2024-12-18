@@ -25,7 +25,14 @@ export default function ProductList() {
   const router = useRouter();
 
   useEffect(() => {
-    return () => {};
+    // Initial fetch
+    fetchProducts();
+
+    // Set up polling
+    const pollInterval = setInterval(fetchProducts, 30000);
+    
+    // Cleanup on unmount
+    return () => clearInterval(pollInterval);
   }, []);
 
   const categories = [
@@ -80,15 +87,6 @@ export default function ProductList() {
   };
 
   useEffect(() => {
-    fetchProducts();
-  }, []);
-
-  useEffect(() => {
-    const pollInterval = setInterval(fetchProducts, 30000);
-    return () => clearInterval(pollInterval);
-  }, []);
-
-  useEffect(() => {
     // Apply filters whenever products, selectedCategories, or selectedTags change
     let filtered = [...products];
     
@@ -131,13 +129,36 @@ export default function ProductList() {
     toast.success("Added to cart!");
   };
 
-  const handleDownload = (e: React.MouseEvent, product: ProductWithUser) => {
+  const handleDownload = async (e: React.MouseEvent, product: ProductWithUser) => {
     e.stopPropagation(); // Prevent card click
-    toast.success(`Starting download: ${product.name}`);
-    // Simulate download start
-    setTimeout(() => {
-      window.open(`/data/downloads/${product.id}`, "_blank");
-    }, 1000);
+    
+    if (!product.attachments || product.attachments.length === 0) {
+      toast.error('No downloadable files available');
+      return;
+    }
+
+    // Download each attachment
+    for (const file of product.attachments) {
+      try {
+        const filename = file.url.split('/').pop();
+        const response = await fetch(`/api/assets/${filename}`);
+        if (!response.ok) throw new Error('Download failed');
+        
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = file.name;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+        toast.success(`Downloading: ${file.name}`);
+      } catch (error) {
+        console.error('Download error:', error);
+        toast.error(`Failed to download ${file.name}`);
+      }
+    }
   };
 
   const handleCardClick = (e: React.MouseEvent, product: ProductWithUser) => {

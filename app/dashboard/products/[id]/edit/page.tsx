@@ -16,7 +16,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { RichTextEditor } from "@/components/ui/rich-text-editor";
-import { ArrowLeft, X, Plus, Image as ImageIcon } from "lucide-react";
+import { ArrowLeft, X, Plus } from "lucide-react";
+import { FileIcon } from "lucide-react"; // Added missing import
 import Image from "next/image";
 
 interface Product {
@@ -32,6 +33,12 @@ interface Product {
   image?: string;
   mobileImage?: string;
   desktopImage?: string;
+  attachments?: {
+    name: string;
+    size: number;
+    type: string;
+    url: string;
+  }[];
   createdAt: string;
   slug: string;
 }
@@ -62,6 +69,8 @@ export default function EditProductPage({
   const [desktopImagePreview, setDesktopImagePreview] = useState<string | null>(
     null
   );
+  const [attachments, setAttachments] = useState<File[]>([]);
+  const [uploadProgress, setUploadProgress] = useState<number>(0);
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -137,23 +146,31 @@ export default function EditProductPage({
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!product) return;
-
+  const handleSubmit = async () => {
     setIsSubmitting(true);
     try {
-      const response = await fetch(`/api/products/${params.id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(product),
+      const formData = new FormData();
+      formData.append('product', JSON.stringify(product));
+      
+      // Add attachments
+      attachments.forEach((file) => {
+        formData.append('attachments', file);
       });
 
-      if (!response.ok) throw new Error("Update failed");
+      const response = await fetch(`/api/products/${params.id}`, {
+        method: "PUT",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to update product");
+      }
+
       toast.success("Product updated successfully");
-      router.push("/dashboard");
+      router.push("/dashboard/products"); 
+      router.refresh();
     } catch (error) {
-      console.error("Error:", error);
+      console.error("Error updating product:", error);
       toast.error("Failed to update product");
     } finally {
       setIsSubmitting(false);
@@ -192,6 +209,38 @@ export default function EditProductPage({
     setProduct({ ...product, highlights });
   };
 
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (!files) return;
+
+    const allowedTypes = [
+      'application/zip',
+      'application/x-zip-compressed',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // Excel
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // Word
+      'text/html',
+      'application/figma',
+      'image/jpeg',
+      'image/png',
+      'image/gif',
+      'application/pdf'
+    ];
+
+    const newFiles = Array.from(files).filter(file =>
+      allowedTypes.includes(file.type) || file.name.endsWith('.fig')
+    );
+
+    if (newFiles.length !== files.length) {
+      toast.error('Some files were not added. Only zip, figma, html, docs, excel, and image files are allowed.');
+    }
+
+    setAttachments(prev => [...prev, ...newFiles]);
+  };
+
+  const removeAttachment = (index: number) => {
+    setAttachments(prev => prev.filter((_, i) => i !== index));
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -222,7 +271,7 @@ export default function EditProductPage({
           </Button>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-8">
+        <form onSubmit={(e) => e.preventDefault()} className="space-y-8">
           {/* Basic Info */}
           <Card>
             <CardHeader>
@@ -418,7 +467,7 @@ export default function EditProductPage({
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center bg-gray-100 dark:bg-gray-800">
-                        <ImageIcon className="h-8 w-8 text-gray-400" />
+                        <FileIcon className="h-8 w-8 text-gray-400" />
                       </div>
                     )}
                   </div>
@@ -445,7 +494,7 @@ export default function EditProductPage({
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center bg-gray-100 dark:bg-gray-800">
-                        <ImageIcon className="h-8 w-8 text-gray-400" />
+                        <FileIcon className="h-8 w-8 text-gray-400" />
                       </div>
                     )}
                   </div>
@@ -472,7 +521,7 @@ export default function EditProductPage({
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center bg-gray-100 dark:bg-gray-800">
-                        <ImageIcon className="h-8 w-8 text-gray-400" />
+                        <FileIcon className="h-8 w-8 text-gray-400" />
                       </div>
                     )}
                   </div>
@@ -482,6 +531,76 @@ export default function EditProductPage({
                     accept="image/*"
                     className="flex-1"
                   />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Attachments */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Attachments</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex flex-col space-y-2">
+                <label className="text-sm font-medium">Upload Files</label>
+                <div className="flex flex-col gap-2">
+                  <div className="flex items-center gap-2">
+                    <Input
+                      type="file"
+                      multiple
+                      onChange={handleFileUpload}
+                      accept=".zip,.fig,.html,.docx,.xlsx,.pdf,image/*"
+                      className="flex-1"
+                    />
+                  </div>
+                  {/* Show existing attachments */}
+                  {product.attachments && product.attachments.length > 0 && (
+                    <div className="grid gap-2">
+                      {product.attachments.map((file, index) => (
+                        <div key={index} className="flex items-center justify-between p-2 border rounded">
+                          <div className="flex items-center gap-2">
+                            <FileIcon className="h-4 w-4 text-gray-500" />
+                            <span className="text-sm">{file.name}</span>
+                            <Badge variant="secondary">
+                              {(file.size / (1024 * 1024)).toFixed(2)} MB
+                            </Badge>
+                          </div>
+                          <a
+                            href={file.url}
+                            download
+                            className="text-blue-600 hover:text-blue-800 mr-2"
+                          >
+                            Download
+                          </a>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {/* Show new attachments to be uploaded */}
+                  {attachments.length > 0 && (
+                    <div className="grid gap-2 mt-4">
+                      <p className="text-sm font-medium">New Files to Upload:</p>
+                      {attachments.map((file, index) => (
+                        <div key={index} className="flex items-center justify-between p-2 border rounded">
+                          <div className="flex items-center gap-2">
+                            <FileIcon className="h-4 w-4 text-gray-500" />
+                            <span className="text-sm">{file.name}</span>
+                            <Badge variant="secondary">
+                              {(file.size / (1024 * 1024)).toFixed(2)} MB
+                            </Badge>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => removeAttachment(index)}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             </CardContent>

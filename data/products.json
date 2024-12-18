@@ -46,7 +46,54 @@
       "userId": 1,
       "slug": "storex-saas-startup-framer-template",
       "createdAt": "2024-12-18T07:32:11.625Z",
-      "id": 7
+      "id": 7,
+      "attachments": [
+        {
+          "name": "favicon_io.zip",
+          "size": 193841,
+          "type": "application/x-zip-compressed",
+          "url": "/assets/958492e8-d8d7-4d2e-9ca7-69d30b7cce67-favicon_io.zip"
+        }
+      ]
+    },
+    {
+      "title": "Creative Alien Studio Framer Template",
+      "name": "Creative Alien Studio Framer Template",
+      "description": "Introducing the Alien Studio Framer website template – the ultimate portfolio template crafted for studios, designers, creatives, and all art enthusiasts. Boasting a sleek, contemporary design with stylish animations and highly customizable elements, this template is your canvas for creativity.<br><br>What's included:<br>👉 Figma design file.<br>👉 Framer Remix link.<br>👉 CMS Framer.<br>👉 Framer Style guide.<br>👉 Free Font in used.<br><br>Blending modern aesthetics with a touch of vintage charm, Nothing Studio transforms your portfolio into a work of art.",
+      "price": 49,
+      "category": "webtemplates",
+      "tags": [
+        "Nextjs",
+        "Figma",
+        "Responsive"
+      ],
+      "highlights": [
+        "Figma File Included",
+        "100% Responsiveness",
+        "Trendy & Modern Design",
+        "Framer Style guide",
+        "CMS",
+        "Free Font in used!"
+      ],
+      "image": "/uploads/30ee31ea-1ada-48ef-adf2-79408adb239b.webp",
+      "mobileImage": "/uploads/3f2eb546-365c-4196-91f6-957005755bfc.webp",
+      "desktopImage": "/uploads/0d0fc5d1-90d4-4fbf-b77c-028da65e77d8.webp",
+      "format": "digital",
+      "storage": "cloud",
+      "userId": 1,
+      "slug": "creative-alien-studio-framer-template",
+      "attachments": [
+        {
+          "originalName": "favicon_io.zip",
+          "fileName": "40259955-efd7-4e85-8afb-4290f900729d.zip",
+          "type": "application/x-zip-compressed",
+          "size": 180766,
+          "url": "/assets/40259955-efd7-4e85-8afb-4290f900729d.zip",
+          "name": "favicon_io.zip"
+        }
+      ],
+      "id": 8,
+      "createdAt": "2024-12-18T10:25:45.409Z"
     }
   ]
 }

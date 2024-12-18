@@ -53,6 +53,12 @@
           "size": 193841,
           "type": "application/x-zip-compressed",
           "url": "/assets/958492e8-d8d7-4d2e-9ca7-69d30b7cce67-favicon_io.zip"
+        },
+        {
+          "name": "Sudhanshu_Dev_Resume.docx",
+          "size": 27561,
+          "type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          "url": "/assets/storex-saas-startup-framer-template-0f80355b-1aeb-42a3-95fb-54f622f7355b.docx"
         }
       ]
     },
@@ -75,9 +81,9 @@
         "CMS",
         "Free Font in used!"
       ],
-      "image": "/uploads/30ee31ea-1ada-48ef-adf2-79408adb239b.webp",
-      "mobileImage": "/uploads/3f2eb546-365c-4196-91f6-957005755bfc.webp",
-      "desktopImage": "/uploads/0d0fc5d1-90d4-4fbf-b77c-028da65e77d8.webp",
+      "image": "/uploads/creative-alien-studio-framer-template-fb7772b7-b762-40cc-b367-8b9a55779a32.webp",
+      "mobileImage": "/uploads/creative-alien-studio-framer-template-mobile-4ca79304-f6cb-4844-81bc-a2303c4dd747.webp",
+      "desktopImage": "/uploads/creative-alien-studio-framer-template-desktop-045e1177-2c3f-4697-afb5-dc58eba612e2.webp",
       "format": "digital",
       "storage": "cloud",
       "userId": 1,
@@ -90,6 +96,12 @@
           "size": 180766,
           "url": "/assets/40259955-efd7-4e85-8afb-4290f900729d.zip",
           "name": "favicon_io.zip"
+        },
+        {
+          "name": "favicon_io(1).zip",
+          "size": 193841,
+          "type": "application/x-zip-compressed",
+          "url": "/assets/creative-alien-studio-framer-template-fc892358-8b59-4036-8643-d25ce561bcf2.zip"
         }
       ],
       "id": 8,

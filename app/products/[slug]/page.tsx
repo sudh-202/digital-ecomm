@@ -18,6 +18,8 @@ import { ProductWithUser } from "@/lib/services/product.service";
 import { getProductBySlug } from "@/lib/services/product.service";
 import { PreviewDialog } from "@/components/preview-dialog";
 import DOMPurify from "isomorphic-dompurify";
+import { getFileIcon } from '@/lib/utils/file-icons';
+import React from "react";
 
 interface ProductInfoProps {
   params: {
@@ -205,8 +207,10 @@ export default function ProductInfo({ params }: ProductInfoProps) {
                                 className="flex items-center justify-between "
                               >
                                 <div className="flex items-center gap-4">
-                                  <div className="p-2 bg-gray-100 rounded">
-                                    <FileIcon className="h-6 w-6 text-gray-600" />
+                                  <div className="p-2 bg-gray-100 dark:bg-gray-800 rounded">
+                                    {React.createElement(getFileIcon(file.name), {
+                                      className: "h-5 w-5 text-blue-600 dark:text-blue-400"
+                                    })}
                                   </div>
                                   <div>
                                     <h3 className="font-medium dark:text-white text-black">{file.name}</h3>

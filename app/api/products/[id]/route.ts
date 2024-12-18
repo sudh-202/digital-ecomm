@@ -38,7 +38,10 @@ export async function PUT(
   try {
     const formData = await request.formData();
     const productData = JSON.parse(formData.get('product') as string);
-    const files = formData.getAll('attachments') as File[];
+    const attachments = formData.getAll('attachments') as File[];
+    const mainImage = formData.get('image') as File | null;
+    const mobileImage = formData.get('mobileImage') as File | null;
+    const desktopImage = formData.get('desktopImage') as File | null;
     
     // Get the current product to get its slug
     const currentProduct = await getProductByIdFromFile(parseInt(params.id));
@@ -50,63 +53,93 @@ export async function PUT(
       );
     }
 
+    // Create uploads directory if it doesn't exist
+    const uploadsDir = path.join(process.cwd(), 'data', 'uploads');
+    if (!existsSync(uploadsDir)) {
+      await mkdir(uploadsDir, { recursive: true });
+    }
+
     // Create assets directory if it doesn't exist
     const baseAssetsDir = path.join(process.cwd(), 'data', 'assets');
     if (!existsSync(baseAssetsDir)) {
       await mkdir(baseAssetsDir, { recursive: true });
     }
 
-    // Create product-specific directory
-    const sanitizedTitle = productData.name
-      .toLowerCase()
-      .replace(/[^a-z0-9]/g, '-')
-      .replace(/-+/g, '-');
-    const productAssetsDir = path.join(baseAssetsDir, sanitizedTitle);
-    if (!existsSync(productAssetsDir)) {
-      await mkdir(productAssetsDir, { recursive: true });
+    // Handle image uploads
+    const imageUrls: { [key: string]: string } = {};
+    
+    if (mainImage) {
+      const buffer = Buffer.from(await mainImage.arrayBuffer());
+      const fileName = `${productData.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${uuidv4()}.webp`;
+      await writeFile(path.join(uploadsDir, fileName), buffer);
+      imageUrls.image = `/uploads/${fileName}`;
+      
+      // Delete old image if it exists
+      if (currentProduct.image) {
+        const oldImagePath = path.join(process.cwd(), 'data', currentProduct.image);
+        if (existsSync(oldImagePath)) {
+          await unlink(oldImagePath);
+        }
+      }
     }
 
-    // Handle file uploads
-    const attachments = [];
-    for (const file of files) {
+    if (mobileImage) {
+      const buffer = Buffer.from(await mobileImage.arrayBuffer());
+      const fileName = `${productData.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-mobile-${uuidv4()}.webp`;
+      await writeFile(path.join(uploadsDir, fileName), buffer);
+      imageUrls.mobileImage = `/uploads/${fileName}`;
+      
+      // Delete old mobile image if it exists
+      if (currentProduct.mobileImage) {
+        const oldImagePath = path.join(process.cwd(), 'data', currentProduct.mobileImage);
+        if (existsSync(oldImagePath)) {
+          await unlink(oldImagePath);
+        }
+      }
+    }
+
+    if (desktopImage) {
+      const buffer = Buffer.from(await desktopImage.arrayBuffer());
+      const fileName = `${productData.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-desktop-${uuidv4()}.webp`;
+      await writeFile(path.join(uploadsDir, fileName), buffer);
+      imageUrls.desktopImage = `/uploads/${fileName}`;
+      
+      // Delete old desktop image if it exists
+      if (currentProduct.desktopImage) {
+        const oldImagePath = path.join(process.cwd(), 'data', currentProduct.desktopImage);
+        if (existsSync(oldImagePath)) {
+          await unlink(oldImagePath);
+        }
+      }
+    }
+
+    // Handle attachments
+    const processedAttachments = [];
+    for (const file of attachments) {
       const buffer = Buffer.from(await file.arrayBuffer());
       const originalName = file.name;
       const ext = path.extname(originalName);
-      const baseName = path.basename(originalName, ext);
-      let fileName = `${uuidv4()}-${baseName}${ext}`;
-      const filePath = path.join(productAssetsDir, fileName);
+      const fileName = `${productData.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${uuidv4()}${ext}`;
+      const filePath = path.join(baseAssetsDir, fileName);
       
-      // Compress the file if it's compressible
-      if (['.zip', '.rar', '.7z'].includes(ext.toLowerCase())) {
-        // File is already compressed, just save it
-        await writeFile(filePath, buffer);
-      } else {
-        // Create a zip file containing the original file
-        const AdmZip = require('adm-zip');
-        const zip = new AdmZip();
-        zip.addFile(originalName, buffer);
-        await new Promise((resolve, reject) => {
-          zip.writeZip(filePath + '.zip', (error: Error) => {
-            if (error) reject(error);
-            else resolve(true);
-          });
-        });
-        // Update the fileName to include .zip extension
-        fileName = fileName + '.zip';
-      }
+      await writeFile(filePath, buffer);
       
-      attachments.push({
+      processedAttachments.push({
         name: originalName,
         size: file.size,
         type: file.type,
-        url: `/assets/${sanitizedTitle}/${fileName}`
+        url: `/assets/${fileName}`
       });
     }
 
-    // Update product with attachments
+    // Update product data
     const updatedProduct = {
       ...productData,
-      attachments: [...(currentProduct.attachments || []), ...attachments]
+      ...imageUrls,
+      attachments: [
+        ...(productData.attachments || []),
+        ...processedAttachments
+      ]
     };
 
     await updateProductInFile(parseInt(params.id), updatedProduct);

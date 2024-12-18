@@ -19,6 +19,8 @@ import { RichTextEditor } from "@/components/ui/rich-text-editor";
 import { ArrowLeft, X, Plus } from "lucide-react";
 import { FileIcon } from "lucide-react"; // Added missing import
 import Image from "next/image";
+import { getFileIcon } from '@/lib/utils/file-icons';
+import React from "react";
 
 interface Product {
   id: number;
@@ -30,9 +32,9 @@ interface Product {
   highlights: string[];
   format: string;
   storage: string;
-  image?: string;
-  mobileImage?: string;
-  desktopImage?: string;
+  image?: string | File;
+  mobileImage?: string | File;
+  desktopImage?: string | File;
   attachments?: {
     name: string;
     size: number;
@@ -109,48 +111,54 @@ export default function EditProductPage({
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const formData = new FormData();
-    formData.append("file", file);
+    // Create a temporary preview
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      if (type === "main") setImagePreview(reader.result as string);
+      else if (type === "mobile") setMobileImagePreview(reader.result as string);
+      else setDesktopImagePreview(reader.result as string);
+    };
+    reader.readAsDataURL(file);
 
-    try {
-      const response = await fetch("/api/upload", {
-        method: "POST",
-        body: formData,
-      });
+    // Store the file to be uploaded with form submission
+    setProduct((prev) => {
+      if (!prev) return prev;
+      const updatedProduct = { ...prev };
+      if (type === "main") updatedProduct.image = file;
+      else if (type === "mobile") updatedProduct.mobileImage = file;
+      else updatedProduct.desktopImage = file;
+      return updatedProduct;
+    });
 
-      if (!response.ok) throw new Error("Upload failed");
-      const data = await response.json();
-      const imagePath = `/uploads/${data.filename}`;
-
-      setProduct((prev) => {
-        if (!prev) return prev;
-        return {
-          ...prev,
-          [type === "main"
-            ? "image"
-            : type === "mobile"
-            ? "mobileImage"
-            : "desktopImage"]: imagePath,
-        };
-      });
-
-      // Update preview
-      if (type === "main") setImagePreview(imagePath);
-      else if (type === "mobile") setMobileImagePreview(imagePath);
-      else setDesktopImagePreview(imagePath);
-
-      toast.success("Image uploaded successfully");
-    } catch (error) {
-      console.error("Error:", error);
-      toast.error("Failed to upload image");
-    }
+    toast.success("Image selected successfully");
   };
 
   const handleSubmit = async () => {
+    if (!product) return;
     setIsSubmitting(true);
+    
     try {
       const formData = new FormData();
-      formData.append('product', JSON.stringify(product));
+      
+      // Append the product data, excluding the File objects
+      const productDataForUpload = {
+        ...product,
+        image: product.image instanceof File ? null : product.image,
+        mobileImage: product.mobileImage instanceof File ? null : product.mobileImage,
+        desktopImage: product.desktopImage instanceof File ? null : product.desktopImage,
+      };
+      formData.append('product', JSON.stringify(productDataForUpload));
+      
+      // Append image files if they exist
+      if (product.image instanceof File) {
+        formData.append('image', product.image);
+      }
+      if (product.mobileImage instanceof File) {
+        formData.append('mobileImage', product.mobileImage);
+      }
+      if (product.desktopImage instanceof File) {
+        formData.append('desktopImage', product.desktopImage);
+      }
       
       // Add attachments
       attachments.forEach((file) => {
@@ -167,7 +175,7 @@ export default function EditProductPage({
       }
 
       toast.success("Product updated successfully");
-      router.push("/dashboard/products"); 
+      router.push("/dashboard/products");
       router.refresh();
     } catch (error) {
       console.error("Error updating product:", error);
@@ -560,7 +568,11 @@ export default function EditProductPage({
                       {product.attachments.map((file, index) => (
                         <div key={index} className="flex items-center justify-between p-2 border rounded">
                           <div className="flex items-center gap-2">
-                            <FileIcon className="h-4 w-4 text-gray-500" />
+                            <div className="p-2 bg-gray-100 dark:bg-gray-800 rounded">
+                              {React.createElement(getFileIcon(file.name), {
+                                className: "h-5 w-5 text-blue-600 dark:text-blue-400"
+                              })}
+                            </div>
                             <span className="text-sm">{file.name}</span>
                             <Badge variant="secondary">
                               {(file.size / (1024 * 1024)).toFixed(2)} MB
@@ -584,7 +596,11 @@ export default function EditProductPage({
                       {attachments.map((file, index) => (
                         <div key={index} className="flex items-center justify-between p-2 border rounded">
                           <div className="flex items-center gap-2">
-                            <FileIcon className="h-4 w-4 text-gray-500" />
+                            <div className="p-2 bg-gray-100 dark:bg-gray-800 rounded">
+                              {React.createElement(getFileIcon(file.name), {
+                                className: "h-5 w-5 text-blue-600 dark:text-blue-400"
+                              })}
+                            </div>
                             <span className="text-sm">{file.name}</span>
                             <Badge variant="secondary">
                               {(file.size / (1024 * 1024)).toFixed(2)} MB

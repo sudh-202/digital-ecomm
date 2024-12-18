@@ -105,7 +105,7 @@ export default function DashboardPage() {
       <div className="min-h-screen p-8 bg-background dark:bg-gray-900 pt-24">
         <div className="max-w-7xl mx-auto">
           <div className="flex justify-between items-center mb-8">
-            <h1 className="text-3xl font-bold text-foreground dark:text-white">Dashboard</h1>
+            <h1 className="text-3xl font-bold text-foreground dark:text-white ">Dashboard</h1>
             <Button
               onClick={() => router.push('/dashboard/products/new')}
               className="bg-blue-700 hover:bg-blue-800 text-white"
@@ -120,7 +120,7 @@ export default function DashboardPage() {
               <TabsTrigger value="products" className="data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700">Products</TabsTrigger>
             </TabsList>
 
-            <TabsContent value="products" className="space-y-4">
+            <TabsContent value="products" className="space-y-4 pt-24">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {products.map((product) => (
                   <Card key={product.id} className="bg-card dark:bg-gray-800 border dark:border-gray-700">

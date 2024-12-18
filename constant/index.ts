@@ -4,13 +4,13 @@ export const navLinks = [
     route: "/"
   },
   {
-    label: "Store",
-    route: "/store"
+    label: "Tables",
+    route: "/dashboard/products"
   },
-  {
-    label: "Explore",
-    route: "/explore"
-  },
+  // {
+  //   label: "Explore",
+  //   route: "/explore"
+  // },
   {
     label: "Dashboard",
     route: "/dashboard"
@@ -19,13 +19,4 @@ export const navLinks = [
     label: "Users",
     route: "/dashboard/users"
   }
-];
-
-
-
-export const partnerLogos = [
-  'https://images.unsplash.com/photo-1599305445671-ac291c95aaa9?w=200&auto=format&fit=crop',
-  'https://images.unsplash.com/photo-1599305445671-ac291c95aaa9?w=200&auto=format&fit=crop',
-  'https://images.unsplash.com/photo-1599305445671-ac291c95aaa9?w=200&auto=format&fit=crop',
-  'https://images.unsplash.com/photo-1599305445671-ac291c95aaa9?w=200&auto=format&fit=crop'
 ];

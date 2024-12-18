@@ -22,7 +22,7 @@ export default function Navbar() {
   const [hasScrolled, setHasScrolled] = useState(false);
   const cartCount = items.length;
   const pathname = usePathname();
-  const isDashboard = pathname === '/dashboard';
+  const isDashboard = pathname.startsWith('/dashboard');
 
   useEffect(() => {
     const handleScroll = () => {
@@ -37,8 +37,8 @@ export default function Navbar() {
   return (
     <header
       className={`fixed top-0 w-full z-50 transition-all duration-300 ${
-        hasScrolled
-          ? "bg-white/95 backdrop-blur-sm dark:bg-gray-900/95 shadow-sm border-b dark:border-gray-800"
+        hasScrolled || isDashboard
+          ? "bg-white dark:bg-gray-900 shadow-sm border-b dark:border-gray-800"
           : "bg-transparent"
       }`}
     >
@@ -47,11 +47,7 @@ export default function Navbar() {
           {/* Logo */}
           <Link 
             href="/" 
-            className={`text-2xl font-bold transition-colors duration-300 ${
-              isDashboard || hasScrolled
-                ? "text-foreground dark:text-white"
-                : "text-foreground dark:text-white"
-            }`}
+            className="text-2xl font-bold text-foreground dark:text-white"
           >
             <span className="text-blue-700">Digi</span>STORE
           </Link>
@@ -62,11 +58,7 @@ export default function Navbar() {
               <Link
                 key={link.route}
                 href={link.route}
-                className={`text-sm font-medium transition-colors duration-300 ${
-                  isDashboard || hasScrolled
-                    ? "text-muted-foreground hover:text-foreground dark:text-gray-300 dark:hover:text-white"
-                    : "text-foreground/90 hover:text-foreground dark:text-gray-200 dark:hover:text-white"
-                }`}
+                className="text-sm font-medium text-muted-foreground hover:text-foreground dark:text-gray-300 dark:hover:text-white transition-colors duration-300"
               >
                 {link.label}
               </Link>
@@ -80,18 +72,10 @@ export default function Navbar() {
             <Button
               variant="ghost"
               size="icon"
-              className={`relative transition-colors duration-300 ${
-                isDashboard || hasScrolled
-                  ? "hover:bg-accent dark:hover:bg-gray-800"
-                  : "hover:bg-white/10 dark:hover:bg-gray-800/50"
-              }`}
+              className="relative hover:bg-accent dark:hover:bg-gray-800 transition-colors duration-300"
               onClick={() => setIsOpen(true)}
             >
-              <ShoppingCart className={`h-5 w-5 transition-colors duration-300 ${
-                isDashboard || hasScrolled
-                  ? "text-foreground dark:text-white"
-                  : "text-foreground dark:text-white"
-              }`} />
+              <ShoppingCart className="h-5 w-5 text-foreground dark:text-white transition-colors duration-300" />
               {cartCount > 0 && (
                 <span className="absolute -top-2 -right-2 h-5 w-5 rounded-full bg-blue-700 flex items-center justify-center text-xs text-white">
                   {cartCount}
@@ -101,33 +85,25 @@ export default function Navbar() {
 
             {/* Mobile Menu */}
             <Sheet>
-              <SheetTrigger asChild className="md:hidden">
+              <SheetTrigger asChild>
                 <Button
                   variant="ghost"
                   size="icon"
-                  className={`transition-colors duration-300 ${
-                    isDashboard || hasScrolled
-                      ? "hover:bg-accent dark:hover:bg-gray-800"
-                      : "hover:bg-white/10 dark:hover:bg-gray-800/50"
-                  }`}
+                  className="md:hidden hover:bg-accent dark:hover:bg-gray-800 transition-colors duration-300"
                 >
-                  <Menu className={`h-5 w-5 transition-colors duration-300 ${
-                    isDashboard || hasScrolled
-                      ? "text-foreground dark:text-white"
-                      : "text-foreground dark:text-white"
-                  }`} />
+                  <Menu className="h-5 w-5 text-foreground dark:text-white" />
                 </Button>
               </SheetTrigger>
-              <SheetContent className="w-[280px] bg-background dark:bg-gray-900">
+              <SheetContent side="right" className="w-[300px] sm:w-[400px] dark:bg-gray-900">
                 <SheetHeader>
-                  <SheetTitle className="text-foreground dark:text-white">Menu</SheetTitle>
+                  <SheetTitle className="text-left dark:text-white">Navigation</SheetTitle>
                 </SheetHeader>
-                <nav className="flex flex-col mt-4">
+                <nav className="flex flex-col space-y-4 mt-4">
                   {navLinks.map((link) => (
                     <Link
                       key={link.route}
                       href={link.route}
-                      className="text-sm font-medium text-muted-foreground hover:text-foreground dark:text-gray-300 dark:hover:text-white py-2 transition-colors"
+                      className="text-sm font-medium text-muted-foreground hover:text-foreground dark:text-gray-300 dark:hover:text-white transition-colors duration-300"
                     >
                       {link.label}
                     </Link>
@@ -138,7 +114,6 @@ export default function Navbar() {
           </div>
         </div>
       </div>
-
       <CartSidebar />
     </header>
   );

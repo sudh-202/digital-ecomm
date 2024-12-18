@@ -58,6 +58,9 @@ export async function POST(request: Request): Promise<NextResponse<NewProduct | 
   try {
     const formData = await request.formData();
     const title = formData.get('title') as string;
+    const safePrefix = title.toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)/g, '');
     const name = formData.get('name') as string;
     const description = formData.get('description') as string;
     const price = Number(formData.get('price'));
@@ -90,7 +93,7 @@ export async function POST(request: Request): Promise<NextResponse<NewProduct | 
     if (mainImage) {
       const buffer = Buffer.from(await mainImage.arrayBuffer());
       const webpBuffer = await convertToWebp(buffer);
-      const fileName = `${uuidv4()}.webp`;
+      const fileName = `${safePrefix}-${uuidv4()}.webp`;
       await writeFile(join(uploadsDir, fileName), webpBuffer);
       imageUrls.image = `/uploads/${fileName}`;
     }
@@ -98,7 +101,7 @@ export async function POST(request: Request): Promise<NextResponse<NewProduct | 
     if (mobileImage) {
       const buffer = Buffer.from(await mobileImage.arrayBuffer());
       const webpBuffer = await convertToWebp(buffer);
-      const fileName = `${uuidv4()}.webp`;
+      const fileName = `${safePrefix}-mobile-${uuidv4()}.webp`;
       await writeFile(join(uploadsDir, fileName), webpBuffer);
       imageUrls.mobileImage = `/uploads/${fileName}`;
     }
@@ -106,7 +109,7 @@ export async function POST(request: Request): Promise<NextResponse<NewProduct | 
     if (desktopImage) {
       const buffer = Buffer.from(await desktopImage.arrayBuffer());
       const webpBuffer = await convertToWebp(buffer);
-      const fileName = `${uuidv4()}.webp`;
+      const fileName = `${safePrefix}-desktop-${uuidv4()}.webp`;
       await writeFile(join(uploadsDir, fileName), webpBuffer);
       imageUrls.desktopImage = `/uploads/${fileName}`;
     }
@@ -117,11 +120,12 @@ export async function POST(request: Request): Promise<NextResponse<NewProduct | 
 
     for (const file of attachments) {
       const buffer = Buffer.from(await file.arrayBuffer());
-      let fileName = `${uuidv4()}${extname(file.name)}`;
+      const extension = extname(file.name);
+      let fileName = `${safePrefix}-${uuidv4()}${extension}`;
       const originalName = file.name;
       
       // Determine file type and apply appropriate processing
-      const isZip = ['.zip', '.rar', '.7z'].includes(extname(file.name).toLowerCase());
+      const isZip = ['.zip', '.rar', '.7z'].includes(extension.toLowerCase());
       const destinationDir = isZip ? assetsDir : uploadsDir;
       const destinationType = isZip ? 'assets' : 'uploads';
       
@@ -131,7 +135,7 @@ export async function POST(request: Request): Promise<NextResponse<NewProduct | 
         processedBuffer = await compressAsset(buffer);
       } else if (file.type.startsWith('image/')) {
         processedBuffer = await convertToWebp(buffer);
-        fileName = fileName.replace(extname(fileName), '.webp');
+        fileName = fileName.replace(extension, '.webp');
       }
       
       await writeFile(join(destinationDir, fileName), processedBuffer);

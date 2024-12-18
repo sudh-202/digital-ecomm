@@ -82,14 +82,14 @@ export function PreviewDialog({ slug, open, onOpenChange }: PreviewDialogProps) 
               <TabsList className="grid w-full max-w-[300px] grid-cols-2 mb-4 bg-gray-200 dark:bg-gray-800 rounded-2xl mx-auto">
                 <TabsTrigger 
                   value="desktop" 
-                  className="gap-2 rounded-2xl data-[state=active]:bg-white dark:data-[state=active]:bg-gray-900 data-[state=active]:text-gray-900 dark:data-[state=active]:text-white"
+                  className="gap-2 rounded-2xl data-[state=active]:bg-white dark:data-[state=active]:bg-gray-900 data-[state=active]:text-gray-900 dark:data-[state=active]:text-white dark:text-white"
                 >
                   <Monitor className="h-4 w-4" />
                   Desktop
                 </TabsTrigger>
                 <TabsTrigger 
                   value="mobile" 
-                  className="gap-2 rounded-2xl data-[state=active]:bg-white dark:data-[state=active]:bg-gray-900 data-[state=active]:text-gray-900 dark:data-[state=active]:text-white"
+                  className="gap-2 rounded-2xl data-[state=active]:bg-white dark:data-[state=active]:bg-gray-900 data-[state=active]:text-gray-900 dark:data-[state=active]:text-white dark:text-white"
                 >
                   <Smartphone className="h-4 w-4" />
                   Mobile

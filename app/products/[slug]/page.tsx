@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { ProductWithUser } from "@/lib/services/product.service";
 import { getProductBySlug } from "@/lib/services/product.service";
 import { PreviewDialog } from "@/components/preview-dialog";
+import DOMPurify from 'isomorphic-dompurify';
 
 interface ProductInfoProps {
   params: {
@@ -83,7 +84,7 @@ export default function ProductInfo({ params }: ProductInfoProps) {
                       {product.name}✅
                     </h1>
                     <p className="text-gray-600 text-xl dark:text-gray-300 mt-2">
-                      {product.description.split(" ").slice(0, 12).join(" ")}...
+                      {product.description.replace(/<[^>]*>/g, '').split(" ").slice(0, 12).join(" ")}...
                     </p>
                     <div className="mt-4">
                       <span className="text-sm text-gray-500 dark:text-gray-400">
@@ -163,17 +164,20 @@ export default function ProductInfo({ params }: ProductInfoProps) {
                     <h2 className="text-3xl font-semibold mb-4 text-gray-800 dark:text-white">
                       Overview
                     </h2>
-                    <p className="text-gray-600 dark:text-gray-300">
-                      {product.description}
-                    </p>
+                    <div 
+                      className="text-gray-600 dark:text-gray-300 prose dark:prose-invert max-w-none"
+                      dangerouslySetInnerHTML={{ 
+                        __html: DOMPurify.sanitize(product.description)
+                      }}
+                    />
                   </div>
                   <div className="p-8 bg-white dark:bg-gray-800 rounded-xl shadow-sm">
                     <h2 className="text-3xl font-semibold mb-4 text-gray-800 dark:text-white">
                       Highlights
                     </h2>
-                    <ul className="list-disc list-inside space-y-2 text-gray-600 dark:text-gray-300">
+                    <ul className="list-none list-inside space-y-2 text-gray-600 dark:text-gray-300">
                       {product.highlights?.map((highlight, index) => (
-                        <li key={index}>{highlight}</li>
+                        <li key={index}>✅ {highlight}</li>
                       )) || <li>No highlights available</li>}
                     </ul>
                   </div>

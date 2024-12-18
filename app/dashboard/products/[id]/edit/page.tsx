@@ -1,16 +1,23 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { toast } from 'sonner';
-import { ArrowLeft, X, Plus, Image as ImageIcon } from 'lucide-react';
-import Image from 'next/image';
+import { toast } from "sonner";
+import { RichTextEditor } from "@/components/ui/rich-text-editor";
+import { ArrowLeft, X, Plus, Image as ImageIcon } from "lucide-react";
+import Image from "next/image";
 
 interface Product {
   id: number;
@@ -30,39 +37,54 @@ interface Product {
 }
 
 const CATEGORIES = [
-  { value: 'education', label: 'Education' },
-  { value: 'business', label: 'Business' },
-  { value: 'technology', label: 'Technology' },
-  { value: 'language', label: 'Language' },
-  { value: 'professional', label: 'Professional' }
+  { value: "education", label: "Education" },
+  { value: "business", label: "Business" },
+  { value: "technology", label: "Technology" },
+  { value: "language", label: "Language" },
+  { value: "professional", label: "Professional" },
 ];
 
-export default function EditProductPage({ params }: { params: { id: string } }) {
+export default function EditProductPage({
+  params,
+}: {
+  params: { id: string };
+}) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [product, setProduct] = useState<Product | null>(null);
-  const [newTag, setNewTag] = useState('');
-  const [newHighlight, setNewHighlight] = useState('');
+  const [newTag, setNewTag] = useState("");
+  const [newHighlight, setNewHighlight] = useState("");
   const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [mobileImagePreview, setMobileImagePreview] = useState<string | null>(null);
-  const [desktopImagePreview, setDesktopImagePreview] = useState<string | null>(null);
+  const [mobileImagePreview, setMobileImagePreview] = useState<string | null>(
+    null
+  );
+  const [desktopImagePreview, setDesktopImagePreview] = useState<string | null>(
+    null
+  );
 
   useEffect(() => {
     const fetchProduct = async () => {
       try {
         const response = await fetch(`/api/products/${params.id}`);
-        if (!response.ok) throw new Error('Failed to fetch product');
+        if (!response.ok) throw new Error("Failed to fetch product");
         const data = await response.json();
         setProduct(data);
-        
+
         // Set image previews from data/uploads
-        if (data.image) setImagePreview(`/uploads/${data.image.split('/').pop()}`);
-        if (data.mobileImage) setMobileImagePreview(`/uploads/${data.mobileImage.split('/').pop()}`);
-        if (data.desktopImage) setDesktopImagePreview(`/uploads/${data.desktopImage.split('/').pop()}`);
+        if (data.image)
+          setImagePreview(`/uploads/${data.image.split("/").pop()}`);
+        if (data.mobileImage)
+          setMobileImagePreview(
+            `/uploads/${data.mobileImage.split("/").pop()}`
+          );
+        if (data.desktopImage)
+          setDesktopImagePreview(
+            `/uploads/${data.desktopImage.split("/").pop()}`
+          );
       } catch (error) {
-        console.error('Error:', error);
-        toast.error('Failed to fetch product');
+        console.error("Error:", error);
+        toast.error("Failed to fetch product");
       } finally {
         setIsLoading(false);
       }
@@ -71,40 +93,47 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
     fetchProduct();
   }, [params.id]);
 
-  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>, type: 'main' | 'mobile' | 'desktop') => {
+  const handleImageChange = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+    type: "main" | "mobile" | "desktop"
+  ) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     const formData = new FormData();
-    formData.append('file', file);
+    formData.append("file", file);
 
     try {
-      const response = await fetch('/api/upload', {
-        method: 'POST',
+      const response = await fetch("/api/upload", {
+        method: "POST",
         body: formData,
       });
 
-      if (!response.ok) throw new Error('Upload failed');
+      if (!response.ok) throw new Error("Upload failed");
       const data = await response.json();
       const imagePath = `/uploads/${data.filename}`;
 
-      setProduct(prev => {
+      setProduct((prev) => {
         if (!prev) return prev;
         return {
           ...prev,
-          [type === 'main' ? 'image' : type === 'mobile' ? 'mobileImage' : 'desktopImage']: imagePath
+          [type === "main"
+            ? "image"
+            : type === "mobile"
+            ? "mobileImage"
+            : "desktopImage"]: imagePath,
         };
       });
 
       // Update preview
-      if (type === 'main') setImagePreview(imagePath);
-      else if (type === 'mobile') setMobileImagePreview(imagePath);
+      if (type === "main") setImagePreview(imagePath);
+      else if (type === "mobile") setMobileImagePreview(imagePath);
       else setDesktopImagePreview(imagePath);
 
-      toast.success('Image uploaded successfully');
+      toast.success("Image uploaded successfully");
     } catch (error) {
-      console.error('Error:', error);
-      toast.error('Failed to upload image');
+      console.error("Error:", error);
+      toast.error("Failed to upload image");
     }
   };
 
@@ -115,49 +144,51 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
     setIsSubmitting(true);
     try {
       const response = await fetch(`/api/products/${params.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(product),
       });
 
-      if (!response.ok) throw new Error('Update failed');
-      toast.success('Product updated successfully');
-      router.push('/dashboard');
+      if (!response.ok) throw new Error("Update failed");
+      toast.success("Product updated successfully");
+      router.push("/dashboard");
     } catch (error) {
-      console.error('Error:', error);
-      toast.error('Failed to update product');
+      console.error("Error:", error);
+      toast.error("Failed to update product");
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const addTag = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && newTag.trim() && product) {
+    if (e.key === "Enter" && newTag.trim() && product) {
       e.preventDefault();
       const tags = [...(product.tags || []), newTag.trim()];
       setProduct({ ...product, tags });
-      setNewTag('');
+      setNewTag("");
     }
   };
 
   const removeTag = (tagToRemove: string) => {
     if (!product) return;
-    const tags = product.tags.filter(tag => tag !== tagToRemove);
+    const tags = product.tags.filter((tag) => tag !== tagToRemove);
     setProduct({ ...product, tags });
   };
 
   const addHighlight = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && newHighlight.trim() && product) {
+    if (e.key === "Enter" && newHighlight.trim() && product) {
       e.preventDefault();
       const highlights = [...(product.highlights || []), newHighlight.trim()];
       setProduct({ ...product, highlights });
-      setNewHighlight('');
+      setNewHighlight("");
     }
   };
 
   const removeHighlight = (highlightToRemove: string) => {
     if (!product) return;
-    const highlights = product.highlights.filter(highlight => highlight !== highlightToRemove);
+    const highlights = product.highlights.filter(
+      (highlight) => highlight !== highlightToRemove
+    );
     setProduct({ ...product, highlights });
   };
 
@@ -189,7 +220,6 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
             <ArrowLeft className="h-4 w-4" />
             Back
           </Button>
-          
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-8">
@@ -203,19 +233,33 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
                 <label className="text-sm font-medium">Name</label>
                 <Input
                   value={product.name}
-                  onChange={(e) => setProduct({ ...product, name: e.target.value })}
+                  onChange={(e) =>
+                    setProduct({ ...product, name: e.target.value })
+                  }
                   placeholder="Product name"
                 />
               </div>
 
               <div className="space-y-2">
                 <label className="text-sm font-medium">Description</label>
-                <Textarea
-                  value={product.description}
-                  onChange={(e) => setProduct({ ...product, description: e.target.value })}
-                  placeholder="Product description"
-                  className="min-h-[100px]"
-                />
+                <div className="space-y-4">
+                  <RichTextEditor
+                    value={product.description}
+                    onChange={(value) =>
+                      setProduct({ ...product, description: value })
+                    }
+                    placeholder="Write a compelling description for your product..."
+                  />
+                  <div className="text-xs text-gray-500 dark:text-gray-400">
+                    Tips for a great description:
+                    <ul className="list-disc list-inside mt-1 space-y-1">
+                      <li>Start with a clear overview</li>
+                      <li>Highlight key features and benefits</li>
+                      <li>Use bullet points for readability</li>
+                      <li>Include technical specifications</li>
+                    </ul>
+                  </div>
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -224,7 +268,9 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
                   <Input
                     type="number"
                     value={product.price}
-                    onChange={(e) => setProduct({ ...product, price: e.target.value })}
+                    onChange={(e) =>
+                      setProduct({ ...product, price: e.target.value })
+                    }
                     placeholder="Price"
                   />
                 </div>
@@ -233,7 +279,9 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
                   <label className="text-sm font-medium">Category</label>
                   <Select
                     value={product.category}
-                    onValueChange={(value) => setProduct({ ...product, category: value })}
+                    onValueChange={(value) =>
+                      setProduct({ ...product, category: value })
+                    }
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Select category" />
@@ -289,7 +337,7 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
                     if (newTag.trim()) {
                       const tags = [...(product.tags || []), newTag.trim()];
                       setProduct({ ...product, tags });
-                      setNewTag('');
+                      setNewTag("");
                     }
                   }}
                 >
@@ -311,7 +359,7 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
                     key={index}
                     className="flex items-center gap-2 p-3 rounded-lg bg-gray-50 dark:bg-gray-800"
                   >
-                    <span className="flex-1">{highlight}</span>
+                    <span className="flex-1">✅ {highlight}</span>
                     <button
                       type="button"
                       onClick={() => removeHighlight(highlight)}
@@ -335,9 +383,12 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
                   variant="outline"
                   onClick={() => {
                     if (newHighlight.trim()) {
-                      const highlights = [...(product.highlights || []), newHighlight.trim()];
+                      const highlights = [
+                        ...(product.highlights || []),
+                        newHighlight.trim(),
+                      ];
                       setProduct({ ...product, highlights });
-                      setNewHighlight('');
+                      setNewHighlight("");
                     }
                   }}
                 >
@@ -373,7 +424,7 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
                   </div>
                   <Input
                     type="file"
-                    onChange={(e) => handleImageChange(e, 'main')}
+                    onChange={(e) => handleImageChange(e, "main")}
                     accept="image/*"
                     className="flex-1"
                   />
@@ -400,7 +451,7 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
                   </div>
                   <Input
                     type="file"
-                    onChange={(e) => handleImageChange(e, 'mobile')}
+                    onChange={(e) => handleImageChange(e, "mobile")}
                     accept="image/*"
                     className="flex-1"
                   />
@@ -427,7 +478,7 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
                   </div>
                   <Input
                     type="file"
-                    onChange={(e) => handleImageChange(e, 'desktop')}
+                    onChange={(e) => handleImageChange(e, "desktop")}
                     accept="image/*"
                     className="flex-1"
                   />
@@ -440,7 +491,7 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
             disabled={isSubmitting}
             className="bg-blue-600 hover:bg-blue-700 text-white rounded-2xl"
           >
-            {isSubmitting ? 'Saving...' : 'Save Changes'}
+            {isSubmitting ? "Saving..." : "Save Changes"}
           </Button>
         </form>
       </div>

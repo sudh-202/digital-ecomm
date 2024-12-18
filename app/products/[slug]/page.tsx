@@ -194,23 +194,23 @@ export default function ProductInfo({ params }: ProductInfoProps) {
                     </ul>
                     {product.attachments && product.attachments.length > 0 && (
                       <section className="py-8">
-                        <div className="container mx-auto px-4">
-                          <h2 className="text-2xl font-bold mb-4">
+                        <div className="">
+                          <h2 className="text-3xl font-semibold mb-4 text-gray-800 dark:text-white">
                             Files & Resources
                           </h2>
                           <div className="grid gap-4">
                             {product.attachments.map((file, index) => (
                               <div
                                 key={index}
-                                className="flex items-center justify-between p-4 bg-white rounded-lg shadow"
+                                className="flex items-center justify-between "
                               >
                                 <div className="flex items-center gap-4">
                                   <div className="p-2 bg-gray-100 rounded">
                                     <FileIcon className="h-6 w-6 text-gray-600" />
                                   </div>
                                   <div>
-                                    <h3 className="font-medium">{file.name}</h3>
-                                    <p className="text-sm text-gray-500">
+                                    <h3 className="font-medium dark:text-white text-black">{file.name}</h3>
+                                    <p className="text-sm text-gray-500 dark:text-gray-300">
                                       {(file.size / (1024 * 1024)).toFixed(2)}{" "}
                                       MB
                                     </p>
@@ -240,8 +240,8 @@ export default function ProductInfo({ params }: ProductInfoProps) {
                                   }}
                                   className="inline-flex items-center px-4 py-2 text-sm font-medium text-blue-600 hover:text-blue-800"
                                 >
-                                  Download
-                                  <ArrowDown className="ml-2 h-4 w-4" />
+                                  {/* Download
+                                  <ArrowDown className="ml-2 h-4 w-4" /> */}
                                 </button>
                               </div>
                             ))}

@@ -1,52 +1,156 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Digital E-commerce Platform
+
+## Overview
+A modern, full-stack e-commerce platform built with Next.js 14, featuring a robust admin dashboard, product management, and user authentication.
+
+## Tech Stack
+- **Frontend**:
+  - Next.js 14 (React Framework)
+  - TypeScript
+  - Tailwind CSS
+  - Radix UI Components
+  - Framer Motion (Animations)
+  - Lucide React (Icons)
+
+- **Backend**:
+  - Next.js API Routes
+  - Prisma ORM
+  - SQLite Database
+  - JWT Authentication
+  - BCrypt for Password Hashing
+
+- **Development Tools**:
+  - ESLint
+  - Prettier
+  - TypeScript
+  - Drizzle ORM
+
+## Features
+### Authentication & Authorization
+- Secure user authentication with JWT
+- Role-based access control (Admin/User)
+- Protected routes and API endpoints
+
+### Admin Dashboard
+- Comprehensive product management
+  - Create, edit, and delete products
+  - Rich text editor for product descriptions
+  - Image upload and management
+- Order management and tracking
+- User management
+- Analytics and reporting
+
+### Product Management
+- Advanced product categorization
+- Multiple product images
+- Detailed product specifications
+- Stock management
+- Price management
+
+### User Features
+- User profile management
+- Order history
+- Shopping cart functionality
+- Wishlist management
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
+- Node.js 18+ installed
+- Git
+- npm or yarn package manager
 
+### Installation Steps
+1. Clone the repository
+```bash
+git clone https://github.com/yourusername/digital-ecomm.git
+cd digital-ecomm
+```
+
+2. Install dependencies
+```bash
+npm install
+# or
+yarn install
+```
+
+3. Set up environment variables
+Create a `.env` file in the root directory with the following variables:
+```env
+DATABASE_URL="file:./sqlite.db"
+JWT_SECRET=your_jwt_secret_here
+NEXT_PUBLIC_API_URL=http://localhost:3000
+```
+
+4. Initialize the database
+```bash
+npx prisma generate
+npx prisma db push
+```
+
+5. Run the development server
 ```bash
 npm run dev
 # or
 yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+The application will be available at `http://localhost:3000`
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Common Issues and Solutions
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Database Connection Issues
+- **Error**: "Cannot connect to database"
+  - **Solution**: Ensure your DATABASE_URL in `.env` is correct
+  - Check if SQLite file exists and has proper permissions
 
-## Learn More
+### Build Errors
+- **Error**: "Module not found"
+  - **Solution**: Run `npm install` again
+  - Clear `.next` folder and rebuild
 
-To learn more about Next.js, take a look at the following resources:
+### Image Upload Issues
+- **Error**: "Failed to upload image"
+  - **Solution**: Check file size (max 5MB)
+  - Ensure proper file formats (JPG, PNG, WebP)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Authentication Issues
+- **Error**: "Invalid token"
+  - **Solution**: Clear browser cookies
+  - Check if JWT_SECRET is properly set
+  - Ensure token hasn't expired
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Development Guidelines
+- Follow TypeScript best practices
+- Use conventional commits
+- Write unit tests for new features
+- Follow the existing code structure
+- Use provided UI components from the component library
 
-## Deploy on Vercel
+## Project Structure
+```
+digital-ecomm/
+├── app/                  # Next.js app directory
+├── components/          # Reusable UI components
+├── config/             # Configuration files
+├── constant/           # Constants and enums
+├── context/            # React context providers
+├── lib/                # Utility functions and helpers
+├── prisma/             # Database schema and migrations
+├── public/             # Static assets
+├── styles/             # Global styles
+└── types/              # TypeScript type definitions
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Contributing
+1. Fork the repository
+2. Create a feature branch
+3. Commit your changes
+4. Push to the branch
+5. Create a Pull Request
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## License
+This project is licensed under the MIT License.
 
-## Deploy on Render.com
-
-To deploy this application on Render.com:
-
-1. Fork or clone this repository to your GitHub account
-2. Create a new Web Service on Render.com
-3. Connect your GitHub repository
-4. Configure the following environment variables in the Render dashboard:
-   - `DATABASE_URL`: Your Turso database URL
-   - `DATABASE_AUTH_TOKEN`: Your Turso database auth token
-   - `NEXT_PUBLIC_APP_URL`: Your Render.com app URL (e.g., https://your-app-name.onrender.com)
-
-The deployment will automatically use the configuration from `render.yaml`.
-
-Note: This deployment is configured to support file uploads and database operations, which may not work properly on other platforms due to readonly filesystem restrictions.
+## Support
+For support, email support@digital-ecomm.com or create an issue in the repository.

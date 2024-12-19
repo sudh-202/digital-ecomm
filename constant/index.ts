@@ -7,10 +7,10 @@ export const navLinks = [
     label: "Tables",
     route: "/dashboard/products"
   },
-  // {
-  //   label: "Explore",
-  //   route: "/explore"
-  // },
+  {
+    label: "Docs",
+    route: "/docs/structure"
+  },
   {
     label: "Dashboard",
     route: "/dashboard"
